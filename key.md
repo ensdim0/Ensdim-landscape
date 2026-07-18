@@ -1,0 +1,9 @@
+cd "e:\Projects\bostanAmary\mobile_app"
+flutter run --dart-define=SUPABASE_URL=https://fazohdqthhktvpzlglue.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhem9oZHF0aGhrdHZwemxnbHVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MDEzNTIsImV4cCI6MjA4NTk3NzM1Mn0.PQ5Jmg4c-J9f2Xhk24Q86tHlajrbYMxzedJXK7MgY8c
+
+
+
+
+cd "e:\Projects\bostanAmary\mobile_app"
+
+flutter build apk --release --dart-define=SUPABASE_URL=https://fazohdqthhktvpzlglue.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhem9oZHF0aGhrdHZwemxnbHVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MDEzNTIsImV4cCI6MjA4NTk3NzM1Mn0.PQ5Jmg4c-J9f2Xhk24Q86tHlajrbYMxzedJXK7MgY8c

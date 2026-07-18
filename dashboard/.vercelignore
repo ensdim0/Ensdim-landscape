@@ -1,0 +1,18 @@
+# Dependencies
+node_modules
+
+# VCS
+.git
+
+# Python
+.venv
+
+# Top-level non-dashboard folders
+/supabase
+/scripts
+/assets/*
+!/assets/logo10.png
+!/assets/background-imag.jpg
+
+# Docs
+*.md

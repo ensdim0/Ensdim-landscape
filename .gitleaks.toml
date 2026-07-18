@@ -1,0 +1,11 @@
+title = "gitleaks default config"
+
+[[rules]]
+id = "jwt-like"
+description = "Detect JWT-like tokens"
+regex = '''eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+'''
+
+[[rules]]
+id = "supabase-anon"
+description = "Supabase anon key pattern"
+regex = '''eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+''' 
