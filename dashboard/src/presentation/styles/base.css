@@ -1884,6 +1884,31 @@ a {
   grid-template-columns: 1fr 1fr;
 }
 
+.center-card {
+  width: min(480px, 100%);
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #dbe1d5;
+  box-shadow: 0 26px 60px -36px rgba(30, 43, 21, 0.4);
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.center-card h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.center-card p {
+  color: #5a6b52;
+  line-height: 1.6;
+  margin: 0;
+}
+
 .auth-side {
   position: relative;
   background-image: url("/background-imag.jpg");

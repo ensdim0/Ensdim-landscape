@@ -2,32 +2,47 @@ import { AuthRepository, AuthSession } from "@domain/repositories/AuthRepository
 import { supabase } from "@infrastructure/supabase/client";
 import { User } from "@domain/entities/User";
 
-const mapUser = (user: any, role: string, fullName?: string, tenantId?: string, tenantName?: string): User => ({
+type RoleInfo = {
+  role: string;
+  fullName: string;
+  tenantId?: string;
+  tenantName?: string;
+  tenantStatus?: User["tenantStatus"];
+};
+
+const mapUser = (user: any, info: RoleInfo): User => ({
   id: user.id,
   email: user.email ?? "",
-  fullName: fullName ?? user.user_metadata?.full_name ?? "",
-  role: role as User["role"],
+  fullName: info.fullName ?? user.user_metadata?.full_name ?? "",
+  role: info.role as User["role"],
   createdAt: user.created_at,
-  tenantId,
-  tenantName
+  tenantId: info.tenantId,
+  tenantName: info.tenantName,
+  tenantStatus: info.tenantStatus
 });
 
 /**
  * Fetch user role from profiles table (the source of truth for roles).
+ *
+ * users_view deliberately returns no row for a suspended tenant's user (see
+ * current_tenant_id()), so my_tenant_status() is queried separately — it
+ * bypasses that filter — purely so the app can tell "suspended" apart from
+ * "something is actually broken" and show the right screen.
  */
-const fetchUserRole = async (
-  userId: string
-): Promise<{ role: string; fullName: string; tenantId?: string; tenantName?: string }> => {
-  const { data } = await supabase
-    .from("users_view")
-    .select("role, fullName, tenantId, tenantName")
-    .eq("id", userId)
-    .maybeSingle();
+const fetchUserRole = async (userId: string): Promise<RoleInfo> => {
+  const [{ data }, { data: tenantStatusRows }] = await Promise.all([
+    supabase.from("users_view").select("role, fullName, tenantId, tenantName").eq("id", userId).maybeSingle(),
+    supabase.rpc("my_tenant_status")
+  ]);
+
+  const tenantStatusRow = Array.isArray(tenantStatusRows) ? tenantStatusRows[0] : tenantStatusRows;
+
   return {
     role: data?.role ?? "client",
     fullName: data?.fullName ?? "",
-    tenantId: data?.tenantId ?? undefined,
-    tenantName: data?.tenantName ?? undefined
+    tenantId: data?.tenantId ?? tenantStatusRow?.tenant_id ?? undefined,
+    tenantName: data?.tenantName ?? tenantStatusRow?.tenant_name ?? undefined,
+    tenantStatus: tenantStatusRow?.status ?? undefined
   };
 };
 
@@ -74,11 +89,11 @@ export class SupabaseAuthRepository implements AuthRepository {
       throw error ?? new Error("Invalid login");
     }
 
-    const { role, fullName, tenantId, tenantName } = await fetchUserRole(data.user.id);
+    const info = await fetchUserRole(data.user.id);
 
     return {
       accessToken: data.session.access_token,
-      user: mapUser(data.user, role, fullName, tenantId, tenantName)
+      user: mapUser(data.user, info)
     };
   }
 
@@ -94,7 +109,7 @@ export class SupabaseAuthRepository implements AuthRepository {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) return null;
 
-    const { role, fullName, tenantId, tenantName } = await fetchUserRole(data.user.id);
-    return mapUser(data.user, role, fullName, tenantId, tenantName);
+    const info = await fetchUserRole(data.user.id);
+    return mapUser(data.user, info);
   }
 }

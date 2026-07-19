@@ -260,6 +260,7 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<AppUser> _buildAppUser(User user) async {
     final roleName = await _fetchUserRole(user.id);
     final profile = await _fetchProfileData(user);
+    final tenantStatus = await _fetchTenantStatus();
 
     return AppUser(
       id: user.id,
@@ -267,7 +268,28 @@ class SupabaseAuthRepository implements AuthRepository {
       fullName: profile.fullName,
       phone: profile.phone,
       role: roleName,
+      tenantStatus: tenantStatus,
     );
+  }
+
+  /// Reads the caller's own tenant status via `my_tenant_status()`, which
+  /// deliberately bypasses the suspension check baked into
+  /// `current_tenant_id()` (see the multi-tenant RLS migrations) — this is
+  /// the one place the app needs to see "suspended" instead of just getting
+  /// empty results everywhere.
+  Future<String?> _fetchTenantStatus() async {
+    try {
+      final data = await _client.rpc('my_tenant_status');
+      if (data is List && data.isNotEmpty) {
+        return data.first['status'] as String?;
+      }
+      if (data is Map) {
+        return data['status'] as String?;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Queries `user_roles` joined with `roles` to determine the user's role.

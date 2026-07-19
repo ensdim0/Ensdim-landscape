@@ -11,6 +11,7 @@ class AppUser {
   final String? phone;
   final String role;
   final String? assignedLineId;
+  final String? tenantStatus;
 
   const AppUser({
     required this.id,
@@ -19,11 +20,13 @@ class AppUser {
     this.phone,
     required this.role,
     this.assignedLineId,
+    this.tenantStatus,
   });
 
   bool get isAdmin => role == AppRoles.admin;
   bool get isSupervisor => role == AppRoles.supervisor;
   bool get isClient => role == AppRoles.client;
+  bool get isTenantSuspended => tenantStatus == 'suspended';
 
   @override
   String toString() => 'AppUser(id: $id, role: $role, name: $fullName)';

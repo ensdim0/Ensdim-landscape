@@ -211,7 +211,20 @@ function CompaniesDashboard({ accessToken }: { accessToken: string }) {
         />
       )}
 
-      {selected && <CompanyDetailModal tenant={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <CompanyDetailModal
+          tenant={selected}
+          accessToken={accessToken}
+          onClose={() => setSelected(null)}
+          onChanged={() => {
+            reload();
+          }}
+          onDeleted={() => {
+            setSelected(null);
+            reload();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -281,52 +294,216 @@ function CreateCompanyModal({
   );
 }
 
-function CompanyDetailModal({ tenant, onClose }: { tenant: Tenant; onClose: () => void }) {
+function CompanyDetailModal({
+  tenant,
+  accessToken,
+  onClose,
+  onChanged,
+  onDeleted,
+}: {
+  tenant: Tenant;
+  accessToken: string;
+  onClose: () => void;
+  onChanged: () => void;
+  onDeleted: () => void;
+}) {
   const [users, setUsers] = useState<TenantUser[]>([]);
+  const [admins, setAdmins] = useState<TenantUser[]>([]);
+  const [contractCounts, setContractCounts] = useState<{ total: number; active: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [renaming, setRenaming] = useState(false);
+  const [newName, setNewName] = useState(tenant.name);
+  const [renameError, setRenameError] = useState<string | null>(null);
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmSlugInput, setConfirmSlugInput] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
-    supabase
-      .from("users")
-      .select("id, full_name, email, phone, created_at")
-      .eq("tenant_id", tenant.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setUsers(data ?? []);
-        setLoading(false);
-      });
+    setLoading(true);
+    Promise.all([
+      supabase
+        .from("users")
+        .select("id, full_name, email, phone, created_at")
+        .eq("tenant_id", tenant.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("user_roles")
+        .select("user_id, roles!inner(name), users!inner(id, full_name, email, phone, created_at, tenant_id)")
+        .eq("roles.name", "admin")
+        .eq("users.tenant_id", tenant.id),
+      supabase.from("contracts").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
+      supabase
+        .from("contracts")
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenant.id)
+        .eq("status", "active"),
+    ]).then(([usersRes, adminsRes, totalRes, activeRes]) => {
+      setUsers(usersRes.data ?? []);
+      setAdmins(((adminsRes.data ?? []) as any[]).map((row) => row.users));
+      setContractCounts({ total: totalRes.count ?? 0, active: activeRes.count ?? 0 });
+      setLoading(false);
+    });
   }, [tenant.id]);
+
+  async function handleRename() {
+    setRenameError(null);
+    const trimmed = newName.trim();
+    if (!trimmed) {
+      setRenameError("الاسم لازم يكون فيه حروف");
+      return;
+    }
+    const { error } = await supabase.from("tenants").update({ name: trimmed }).eq("id", tenant.id);
+    if (error) {
+      setRenameError(error.message);
+      return;
+    }
+    setRenaming(false);
+    onChanged();
+  }
+
+  async function handleDelete() {
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      const res = await fetch(`${EDGE_FUNCTIONS_URL}/platform-delete-company`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ tenantId: tenant.id, confirmSlug: confirmSlugInput.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setDeleteError(json.message || json.error || "حدث خطأ");
+        return;
+      }
+      onDeleted();
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="card" onClick={(e) => e.stopPropagation()}>
-        <h2>{tenant.name}</h2>
+      <div className="card wide" onClick={(e) => e.stopPropagation()}>
+        {renaming ? (
+          <div className="rename-row">
+            <input value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <button onClick={handleRename}>حفظ</button>
+            <button
+              type="button"
+              onClick={() => {
+                setRenaming(false);
+                setNewName(tenant.name);
+              }}
+            >
+              إلغاء
+            </button>
+          </div>
+        ) : (
+          <h2>
+            {tenant.name}{" "}
+            <button type="button" className="link-button" onClick={() => setRenaming(true)}>
+              تعديل الاسم
+            </button>
+          </h2>
+        )}
+        {renameError && <p className="error">{renameError}</p>}
+
         <p className="hint">
           {tenant.slug} — <span className={`badge badge-${tenant.status}`}>{tenant.status}</span>
         </p>
-        <h3>المستخدمين ({users.length})</h3>
+
         {loading ? (
           <p>جارِ التحميل...</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>الاسم</th>
-                <th>البريد</th>
-                <th>الموبايل</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.full_name}</td>
-                  <td>{u.email}</td>
-                  <td>{u.phone}</td>
+          <>
+            <div className="stats-row">
+              <div className="stat-box">
+                <div className="stat-value">{users.length}</div>
+                <div className="stat-label">مستخدم</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-value">{admins.length}</div>
+                <div className="stat-label">أدمن</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-value">{contractCounts?.total ?? "—"}</div>
+                <div className="stat-label">عقد (الكل)</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-value">{contractCounts?.active ?? "—"}</div>
+                <div className="stat-label">عقد نشط</div>
+              </div>
+            </div>
+
+            <h3>الأدمن</h3>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>الاسم</th>
+                  <th>البريد</th>
+                  <th>الموبايل</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {admins.map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.full_name}</td>
+                    <td>{u.email}</td>
+                    <td>{u.phone}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
+
+        <div className="danger-zone">
+          {!confirmingDelete ? (
+            <button type="button" className="danger-button" onClick={() => setConfirmingDelete(true)}>
+              حذف الشركة نهائيًا
+            </button>
+          ) : (
+            <div className="danger-confirm">
+              <p className="error">
+                ده هيمسح <b>كل بيانات الشركة نهائيًا</b> (عقود، عملاء، مستخدمين، مدفوعات، صور) —
+                مفيش تراجع. اكتب slug الشركة (<code>{tenant.slug}</code>) للتأكيد:
+              </p>
+              <input
+                value={confirmSlugInput}
+                onChange={(e) => setConfirmSlugInput(e.target.value)}
+                placeholder={tenant.slug}
+              />
+              {deleteError && <p className="error">{deleteError}</p>}
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    setConfirmSlugInput("");
+                    setDeleteError(null);
+                  }}
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  className="danger-button"
+                  disabled={deleting || confirmSlugInput.trim() !== tenant.slug}
+                  onClick={handleDelete}
+                >
+                  {deleting ? "جارِ الحذف..." : "تأكيد الحذف النهائي"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="modal-actions">
           <button onClick={onClose}>إغلاق</button>
         </div>

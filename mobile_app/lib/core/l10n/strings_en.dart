@@ -423,4 +423,9 @@ const Map<String, String> stringsEn = {
   'adminNotSupportedTitle': 'This app doesn\'t support admin accounts',
   'adminNotSupportedMessage':
       'Admin accounts are managed through the web dashboard only. Please sign in from there instead.',
+
+  // --- Company suspended ---
+  'accountSuspendedTitle': 'Company temporarily suspended',
+  'accountSuspendedMessage':
+      'Your company\'s account is currently suspended. Please contact support for questions or to reactivate.',
 };

@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@presentation/state/useAuth";
 import { LoadingState } from "@presentation/components/States";
+import { SuspendedPage } from "@presentation/screens/SuspendedPage";
 
 type AllowedRole = "admin" | "supervisor" | "client";
 
@@ -25,6 +26,10 @@ export const RequireAuth = ({ children, allowedRoles }: RequireAuthProps) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user.tenantStatus === "suspended") {
+    return <SuspendedPage />;
   }
 
   if (allowedRoles && allowedRoles.length > 0) {

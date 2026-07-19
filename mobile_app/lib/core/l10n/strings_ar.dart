@@ -422,4 +422,9 @@ const Map<String, String> stringsAr = {
   'adminNotSupportedTitle': 'هذا التطبيق لا يدعم حسابات الإدارة',
   'adminNotSupportedMessage':
       'حساب الأدمن يُدار من خلال لوحة التحكم على المتصفح فقط. برجاء تسجيل الدخول من هناك.',
+
+  // --- تعليق الشركة ---
+  'accountSuspendedTitle': 'الشركة متوقفة مؤقتًا',
+  'accountSuspendedMessage':
+      'حساب شركتك متوقف حاليًا عن الوصول إلى النظام. للاستفسار أو إعادة التفعيل، برجاء التواصل مع فريق الدعم.',
 };
