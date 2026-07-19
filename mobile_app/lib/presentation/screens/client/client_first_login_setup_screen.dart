@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/presentation/providers/auth_provider.dart';
-import 'package:bustan_amari/presentation/widgets/app_text_field.dart';
-import 'package:bustan_amari/presentation/widgets/global_contact_bars.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
+import 'package:ensdim_landscape/presentation/widgets/app_text_field.dart';
+import 'package:ensdim_landscape/presentation/widgets/global_contact_bars.dart';
 
 class ClientFirstLoginSetupScreen extends StatefulWidget {
   final AppUser user;

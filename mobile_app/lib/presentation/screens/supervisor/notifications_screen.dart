@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/domain/entities/app_notification.dart';
-import 'package:bustan_amari/domain/repositories/i_notification_repository.dart';
-import 'package:bustan_amari/infrastructure/di/service_locator.dart';
-import 'package:bustan_amari/presentation/providers/supervisor_provider.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/domain/entities/visit.dart';
-import 'package:bustan_amari/presentation/screens/supervisor/standalone_task_detail_screen.dart';
-import 'package:bustan_amari/presentation/screens/supervisor/visit_detail_screen.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/domain/entities/app_notification.dart';
+import 'package:ensdim_landscape/domain/repositories/i_notification_repository.dart';
+import 'package:ensdim_landscape/infrastructure/di/service_locator.dart';
+import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/domain/entities/visit.dart';
+import 'package:ensdim_landscape/presentation/screens/supervisor/standalone_task_detail_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/supervisor/visit_detail_screen.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final INotificationRepository repository;

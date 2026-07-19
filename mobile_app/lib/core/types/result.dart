@@ -1,4 +1,4 @@
-import 'package:bustan_amari/core/errors/app_exception.dart';
+import 'package:ensdim_landscape/core/errors/app_exception.dart';
 
 /// A discriminated union representing either a successful result or a failure.
 ///

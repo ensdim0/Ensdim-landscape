@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
 
 /// A reusable error widget with retry button.
 class ErrorView extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
 
 /// Screen displayed when a critical security violation is detected.
 ///

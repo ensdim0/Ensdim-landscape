@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
 
 class SocialIconsBar extends StatelessWidget {
   final Color iconColor;
@@ -32,36 +32,12 @@ class SocialIconsBar extends StatelessWidget {
       children: [
         IconButton(
           icon: FaIcon(
-            FontAwesomeIcons.facebookF,
+            FontAwesomeIcons.globe,
             color: iconColor,
             size: iconSize,
           ),
-          onPressed: () => _launchUrl(
-            'https://www.facebook.com/share/1CE8zN5Hru/?mibextid=wwXIfr',
-          ),
-          tooltip: t.tr('facebook'),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        IconButton(
-          icon: FaIcon(
-            FontAwesomeIcons.instagram,
-            color: iconColor,
-            size: iconSize,
-          ),
-          onPressed: () => _launchUrl(
-            'https://www.instagram.com/bustanamari.kw?igsh=Z3V2Y2Q3em8xZXhs',
-          ),
-          tooltip: t.tr('instagram'),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        IconButton(
-          icon: FaIcon(
-            FontAwesomeIcons.tiktok,
-            color: iconColor,
-            size: iconSize,
-          ),
-          onPressed: () => _launchUrl('https://www.tiktok.com/@bustanamari'),
-          tooltip: t.tr('tiktok'),
+          onPressed: () => _launchUrl('https://www.ensdim.com/'),
+          tooltip: t.tr('website'),
         ),
       ],
     );
@@ -109,7 +85,7 @@ class ContactFooterBar extends StatelessWidget {
             Directionality(
               textDirection: TextDirection.ltr,
               child: InkWell(
-                onTap: () => _makePhoneCall('+96599423149'),
+                onTap: () => _makePhoneCall('+201060162694'),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -126,7 +102,7 @@ class ContactFooterBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${t.tr('complaints')}: 96599423149',
+                        '${t.tr('complaints')}: 201060162694',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -146,7 +122,7 @@ class ContactFooterBar extends StatelessWidget {
             Directionality(
               textDirection: TextDirection.ltr,
               child: InkWell(
-                onTap: () => _sendEmail('info@bustanamary.com'),
+                onTap: () => _sendEmail('contact@ensdim.com'),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -159,7 +135,7 @@ class ContactFooterBar extends StatelessWidget {
                       Icon(Icons.email_outlined, size: 16, color: textColor),
                       const SizedBox(width: 4),
                       Text(
-                        'info@bustanamary.com',
+                        'contact@ensdim.com',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

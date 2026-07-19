@@ -13,8 +13,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 /// This is a defense-in-depth measure alongside code obfuscation
 /// and ProGuard/R8 shrinking.
 abstract final class AppIntegrityChecker {
-  static const String _expectedPackageName = 'com.example.mobile_app';
-  static const String _expectedAppName = 'Bustan Amari';
+  static const String _expectedPackageName = 'com.ensdim.landscape';
+  static const String _expectedAppName = 'Ensdim Landscape System';
 
   /// Validates that the running app matches the expected build identity.
   /// Returns `true` if the app appears unmodified.

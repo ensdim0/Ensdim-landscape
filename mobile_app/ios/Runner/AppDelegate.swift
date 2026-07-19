@@ -5,7 +5,7 @@ import UIKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
-  private let galleryChannel = "bustan_amari/gallery"
+  private let galleryChannel = "ensdim_landscape/gallery"
 
   override func application(
     _ application: UIApplication,
@@ -40,7 +40,7 @@ import UIKit
         }
 
         let folderName = (args["folderName"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let albumName = (folderName?.isEmpty == false) ? folderName! : "Bustan Amari"
+        let albumName = (folderName?.isEmpty == false) ? folderName! : "Ensdim Landscape System"
 
         self?.saveImageToPhotoLibrary(
           imageData: typedData.data,

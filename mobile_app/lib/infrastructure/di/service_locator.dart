@@ -1,19 +1,19 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:bustan_amari/application/use_cases/login_use_case.dart';
-import 'package:bustan_amari/application/use_cases/logout_use_case.dart';
-import 'package:bustan_amari/core/notifications/notification_service.dart';
-import 'package:bustan_amari/core/security/login_rate_limiter.dart';
-import 'package:bustan_amari/domain/repositories/auth_repository.dart';
-import 'package:bustan_amari/domain/repositories/client_repository.dart';
-import 'package:bustan_amari/domain/repositories/i_device_token_repository.dart';
-import 'package:bustan_amari/domain/repositories/i_notification_repository.dart';
-import 'package:bustan_amari/domain/repositories/supervisor_repository.dart';
-import 'package:bustan_amari/infrastructure/repositories/supabase_auth_repository.dart';
-import 'package:bustan_amari/infrastructure/repositories/supabase_client_repository.dart';
-import 'package:bustan_amari/infrastructure/repositories/supabase_device_token_repository.dart';
-import 'package:bustan_amari/infrastructure/repositories/supabase_notification_repository.dart';
-import 'package:bustan_amari/infrastructure/repositories/supabase_supervisor_repository.dart';
-import 'package:bustan_amari/infrastructure/storage/secure_storage_service.dart';
+import 'package:ensdim_landscape/application/use_cases/login_use_case.dart';
+import 'package:ensdim_landscape/application/use_cases/logout_use_case.dart';
+import 'package:ensdim_landscape/core/notifications/notification_service.dart';
+import 'package:ensdim_landscape/core/security/login_rate_limiter.dart';
+import 'package:ensdim_landscape/domain/repositories/auth_repository.dart';
+import 'package:ensdim_landscape/domain/repositories/client_repository.dart';
+import 'package:ensdim_landscape/domain/repositories/i_device_token_repository.dart';
+import 'package:ensdim_landscape/domain/repositories/i_notification_repository.dart';
+import 'package:ensdim_landscape/domain/repositories/supervisor_repository.dart';
+import 'package:ensdim_landscape/infrastructure/repositories/supabase_auth_repository.dart';
+import 'package:ensdim_landscape/infrastructure/repositories/supabase_client_repository.dart';
+import 'package:ensdim_landscape/infrastructure/repositories/supabase_device_token_repository.dart';
+import 'package:ensdim_landscape/infrastructure/repositories/supabase_notification_repository.dart';
+import 'package:ensdim_landscape/infrastructure/repositories/supabase_supervisor_repository.dart';
+import 'package:ensdim_landscape/infrastructure/storage/secure_storage_service.dart';
 
 /// Simple service locator for dependency injection.
 ///

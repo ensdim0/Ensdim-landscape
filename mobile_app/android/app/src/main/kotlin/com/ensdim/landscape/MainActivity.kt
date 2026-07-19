@@ -1,4 +1,4 @@
-package com.bustanamari.app
+package com.ensdim.landscape
 
 import android.content.ContentValues
 import android.media.MediaScannerConnection
@@ -14,7 +14,7 @@ import java.io.FileOutputStream
 
 class MainActivity : FlutterActivity() {
     companion object {
-        private const val GALLERY_CHANNEL = "bustan_amari/gallery"
+        private const val GALLERY_CHANNEL = "ensdim_landscape/gallery"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +33,7 @@ class MainActivity : FlutterActivity() {
 
                 val bytes = call.argument<ByteArray>("bytes")
                 val fileName = call.argument<String>("fileName")
-                val folderName = call.argument<String>("folderName") ?: "Bustan Amari"
+                val folderName = call.argument<String>("folderName") ?: "Ensdim Landscape System"
 
                 if (bytes == null || fileName.isNullOrBlank()) {
                     result.error("INVALID_ARGS", "Missing image bytes or file name", null)

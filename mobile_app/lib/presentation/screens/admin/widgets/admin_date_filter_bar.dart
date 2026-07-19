@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
 
 class AdminDateFilterBar extends StatelessWidget {
   final DateTimeRange? range;

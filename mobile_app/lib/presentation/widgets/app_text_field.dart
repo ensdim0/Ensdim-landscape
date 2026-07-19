@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
 
 /// Reusable, accessible text field with consistent styling.
 ///

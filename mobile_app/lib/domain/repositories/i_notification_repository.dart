@@ -1,4 +1,4 @@
-import 'package:bustan_amari/domain/entities/app_notification.dart';
+import 'package:ensdim_landscape/domain/entities/app_notification.dart';
 
 abstract class INotificationRepository {
   Future<List<AppNotification>> getNotifications({int limit = 50});

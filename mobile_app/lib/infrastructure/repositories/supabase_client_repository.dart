@@ -1,17 +1,17 @@
 import 'dart:io';
 
-import 'package:bustan_amari/core/errors/app_exception.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/domain/entities/standalone_task.dart';
-import 'package:bustan_amari/domain/entities/client_comment.dart';
-import 'package:bustan_amari/domain/entities/contract_payment.dart';
-import 'package:bustan_amari/domain/entities/contract_task.dart';
-import 'package:bustan_amari/domain/entities/task_execution.dart';
-import 'package:bustan_amari/domain/entities/task_photo.dart';
-import 'package:bustan_amari/domain/entities/visit.dart';
-import 'package:bustan_amari/domain/entities/visit_photo.dart';
-import 'package:bustan_amari/domain/repositories/client_repository.dart';
+import 'package:ensdim_landscape/core/errors/app_exception.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/domain/entities/client_comment.dart';
+import 'package:ensdim_landscape/domain/entities/contract_payment.dart';
+import 'package:ensdim_landscape/domain/entities/contract_task.dart';
+import 'package:ensdim_landscape/domain/entities/task_execution.dart';
+import 'package:ensdim_landscape/domain/entities/task_photo.dart';
+import 'package:ensdim_landscape/domain/entities/visit.dart';
+import 'package:ensdim_landscape/domain/entities/visit_photo.dart';
+import 'package:ensdim_landscape/domain/repositories/client_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseClientRepository implements ClientRepository {

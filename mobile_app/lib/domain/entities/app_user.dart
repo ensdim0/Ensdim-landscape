@@ -1,4 +1,4 @@
-import 'package:bustan_amari/core/constants/roles.dart';
+import 'package:ensdim_landscape/core/constants/roles.dart';
 
 /// Domain entity representing an authenticated user.
 ///

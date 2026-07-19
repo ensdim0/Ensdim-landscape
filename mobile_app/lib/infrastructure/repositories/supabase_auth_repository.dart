@@ -1,9 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:bustan_amari/core/constants/roles.dart';
-import 'package:bustan_amari/core/errors/app_exception.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/domain/repositories/auth_repository.dart';
+import 'package:ensdim_landscape/core/constants/roles.dart';
+import 'package:ensdim_landscape/core/errors/app_exception.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/domain/repositories/auth_repository.dart';
 
 /// Supabase-backed implementation of [AuthRepository].
 ///
@@ -113,7 +113,7 @@ class SupabaseAuthRepository implements AuthRepository {
       );
     }
 
-    return '$normalizedPhone@bustan.local';
+    return '$normalizedPhone@ensdim.local';
   }
 
   @override
@@ -375,9 +375,9 @@ class SupabaseAuthRepository implements AuthRepository {
     final db = dbEmail?.trim() ?? '';
     final metadata = metadataEmail?.trim() ?? '';
 
-    // When auth login email is a legacy placeholder (phone@bustan.local),
+    // When auth login email is a legacy placeholder (phone@ensdim.local),
     // prefer the contact email entered during first-login setup for display/routing.
-    if (metadata.isNotEmpty && (db.isEmpty || db.endsWith('@bustan.local'))) {
+    if (metadata.isNotEmpty && (db.isEmpty || db.endsWith('@ensdim.local'))) {
       return metadata;
     }
 
@@ -394,7 +394,7 @@ class SupabaseAuthRepository implements AuthRepository {
     final normalizedPhone = cleaned.replaceAll(RegExp(r'[^0-9+]'), '');
     if (normalizedPhone.isEmpty) return null;
 
-    return '$normalizedPhone@bustan.local';
+    return '$normalizedPhone@ensdim.local';
   }
 
   Future<String?> _legacyEmailForEmailIdentifier(String identifier) async {
@@ -411,7 +411,7 @@ class SupabaseAuthRepository implements AuthRepository {
       final phone = (record?['phone'] as String?)?.trim() ?? '';
       final normalizedPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
       if (normalizedPhone.isEmpty) return null;
-      return '$normalizedPhone@bustan.local';
+      return '$normalizedPhone@ensdim.local';
     } catch (_) {
       return null;
     }
@@ -462,7 +462,7 @@ class SupabaseAuthRepository implements AuthRepository {
 
   String? _phoneFromLegacyAuthEmail(String? authEmail) {
     final value = authEmail?.trim().toLowerCase() ?? '';
-    if (!value.endsWith('@bustan.local')) return null;
+    if (!value.endsWith('@ensdim.local')) return null;
 
     final localPart = value.split('@').first;
     final normalizedPhone = localPart.replaceAll(RegExp(r'[^0-9+]'), '');

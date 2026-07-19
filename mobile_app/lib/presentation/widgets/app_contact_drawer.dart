@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
 
 class AppContactDrawer extends StatelessWidget {
   const AppContactDrawer({super.key});
@@ -65,7 +65,7 @@ class AppContactDrawer extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   const Text(
-                    'بستان اماري',
+                    'Ensdim Landscape System',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -79,29 +79,11 @@ class AppContactDrawer extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const FaIcon(
-                          FontAwesomeIcons.facebookF,
-                          color: Colors.blue,
+                          FontAwesomeIcons.globe,
+                          color: AppColors.primary700,
                         ),
                         onPressed: () =>
-                            _launchUrl('https://facebook.com/bustanamary'),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      IconButton(
-                        icon: const FaIcon(
-                          FontAwesomeIcons.instagram,
-                          color: Colors.purple,
-                        ),
-                        onPressed: () =>
-                            _launchUrl('https://instagram.com/bustanamary'),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      IconButton(
-                        icon: const FaIcon(
-                          FontAwesomeIcons.tiktok,
-                          color: Colors.black87,
-                        ),
-                        onPressed: () =>
-                            _launchUrl('https://tiktok.com/@bustanamary'),
+                            _launchUrl('https://www.ensdim.com/'),
                       ),
                     ],
                   ),
@@ -135,16 +117,15 @@ class AppContactDrawer extends StatelessWidget {
                   _ContactRow(
                     icon: Icons.headset_mic_rounded,
                     title: 'رقم الشكاوى',
-                    value: '+96599423149',
-                    onTap: () => _makePhoneCall('+96599423149'),
+                    value: '+201060162694',
+                    onTap: () => _makePhoneCall('+201060162694'),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _ContactRow(
                     icon: Icons.email_rounded,
                     title: 'البريد الإلكتروني',
-                    value:
-                        'info@bustanamary.com', // generic email, can be updated
-                    onTap: () => _sendEmail('info@bustanamary.com'),
+                    value: 'contact@ensdim.com',
+                    onTap: () => _sendEmail('contact@ensdim.com'),
                   ),
                 ],
               ),

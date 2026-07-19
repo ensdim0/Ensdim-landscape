@@ -2,7 +2,7 @@
 
 This project is now configured with Android application ID:
 
-- `com.bustanamari.app`
+- `com.ensdim.landscape`
 
 Use this guide each time you prepare a production release.
 

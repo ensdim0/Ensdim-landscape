@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:bustan_amari/core/security/app_integrity_checker.dart';
-import 'package:bustan_amari/core/security/device_security_checker.dart';
-import 'package:bustan_amari/core/security/secure_logger.dart';
+import 'package:ensdim_landscape/core/security/app_integrity_checker.dart';
+import 'package:ensdim_landscape/core/security/device_security_checker.dart';
+import 'package:ensdim_landscape/core/security/secure_logger.dart';
 
 /// Orchestrates all security checks at app startup.
 ///

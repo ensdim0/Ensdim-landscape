@@ -1,6 +1,6 @@
-# Bustan Amari Mobile App
+# Ensdim Landscape System Mobile App
 
-Flutter mobile application for Bustan Amari operations.
+Flutter mobile application for Ensdim Landscape System operations.
 
 ## Development
 

@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1052446312247",
-    "project_id": "bustan-amari",
-    "storage_bucket": "bustan-amari.firebasestorage.app"
+    "project_number": "43844536936",
+    "project_id": "ensdim-landscape-system",
+    "storage_bucket": "ensdim-landscape-system.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1052446312247:android:e52c9eeea00eb1baf3bcb2",
+        "mobilesdk_app_id": "1:43844536936:android:f3e5bdba5629b0406dc9dd",
         "android_client_info": {
-          "package_name": "com.bustanamari.app"
+          "package_name": "com.ensdim.landscape"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAAVdkdJIqBdGEWf9IrOlOvnk9cwjuLsYA"
+          "current_key": "AIzaSyDErIGkh3R03YJOns76ubkAYP0X8mB8_0I"
         }
       ],
       "services": {

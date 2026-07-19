@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/presentation/providers/auth_provider.dart';
-import 'package:bustan_amari/presentation/providers/locale_provider.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
+import 'package:ensdim_landscape/presentation/providers/locale_provider.dart';
 
 /// Home screen shown to users with the **supervisor** role.
 ///

@@ -82,7 +82,7 @@ export const Sidebar = ({
     <>
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <img src={logoImage} alt="بستان أماري" />
+          <img src={logoImage} alt="Ensdim Landscape System" />
         </div>
       </div>
 

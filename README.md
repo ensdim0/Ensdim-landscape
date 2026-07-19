@@ -1,4 +1,4 @@
-# دليل العميل - مشروع بستان أماري
+# دليل العميل - مشروع Ensdim Landscape System
 
 هذا الملف موجّه للعميل، وبيشرح ازاي تنزّل المشروع وتشغّله من غير خبرة برمجية عميقة.
 
@@ -25,8 +25,8 @@
 ## 2) تحميل المشروع (Clone)
 
 ```powershell
-git clone <رابط الريبو الخاص بتاعكم>
-cd bostanAmary
+git clone https://github.com/ensdim0/Ensdim-landscape.git
+cd Ensdim-landscape
 ```
 
 (الريبو **خاص Private** — محتاج تكون معاك صلاحية وصول عليه من GitHub الأول).
@@ -68,7 +68,7 @@ flutter pub get
 بعدها شغّل التطبيق بالأمر ده (موجود جاهز كمان في ملف `key.md` بالروت — انسخه ولزقه زي ما هو):
 
 ```powershell
-flutter run --dart-define=SUPABASE_URL=https://fazohdqthhktvpzlglue.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhem9oZHF0aGhrdHZwemxnbHVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MDEzNTIsImV4cCI6MjA4NTk3NzM1Mn0.PQ5Jmg4c-J9f2Xhk24Q86tHlajrbYMxzedJXK7MgY8c
+flutter run --dart-define=SUPABASE_URL=https://ukvpasapsxhcczplbbin.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrdnBhc2Fwc3hoY2N6cGxiYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDgzMDgsImV4cCI6MjA5OTk4NDMwOH0.LdDUNajE8LZ0ortsJR5twhShn57riN2IpbwE2Aq0g6A
 ```
 
 > لازم يكون عندك جهاز أندرويد متوصل (أو محاكي/Emulator شغّال) قبل ما تنفذ الأمر ده.
@@ -76,7 +76,7 @@ flutter run --dart-define=SUPABASE_URL=https://fazohdqthhktvpzlglue.supabase.co 
 ### عمل ملف APK لتجربته على أي جهاز أندرويد بدون كمبيوتر
 
 ```powershell
-flutter build apk --release --dart-define=SUPABASE_URL=https://fazohdqthhktvpzlglue.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhem9oZHF0aGhrdHZwemxnbHVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MDEzNTIsImV4cCI6MjA4NTk3NzM1Mn0.PQ5Jmg4c-J9f2Xhk24Q86tHlajrbYMxzedJXK7MgY8c
+flutter build apk --release --dart-define=SUPABASE_URL=https://ukvpasapsxhcczplbbin.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrdnBhc2Fwc3hoY2N6cGxiYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDgzMDgsImV4cCI6MjA5OTk4NDMwOH0.LdDUNajE8LZ0ortsJR5twhShn57riN2IpbwE2Aq0g6A
 ```
 
 الملف الناتج (اللي بتنزّله على أي موبايل أندرويد) هيتحط هنا:
@@ -100,7 +100,7 @@ mobile_app/build/app/outputs/flutter-apk/app-release.apk
 ## 6) هيكل المشروع باختصار
 
 ```
-bostanAmary/
+Ensdim-landscape/
 ├── dashboard/     لوحة تحكم الأدمن/المشرف (ويب)
 ├── mobile_app/    تطبيق الموبايل (Flutter)
 ├── key.md         أوامر تشغيل جاهزة فيها مفاتيح Supabase

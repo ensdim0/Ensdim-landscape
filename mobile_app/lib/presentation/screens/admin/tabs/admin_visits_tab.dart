@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
-import 'package:bustan_amari/presentation/providers/admin_provider.dart';
-import 'package:bustan_amari/presentation/screens/admin/widgets/admin_date_filter_bar.dart';
-import 'package:bustan_amari/presentation/widgets/status_chip.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/presentation/providers/admin_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/widgets/admin_date_filter_bar.dart';
+import 'package:ensdim_landscape/presentation/widgets/status_chip.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:bustan_amari/core/utils/date_formatter.dart' as date_fmt;
+import 'package:ensdim_landscape/core/utils/date_formatter.dart' as date_fmt;
 
 class AdminVisitsTab extends StatefulWidget {
   const AdminVisitsTab({super.key});

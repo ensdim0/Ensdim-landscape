@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/infrastructure/storage/secure_storage_service.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/infrastructure/storage/secure_storage_service.dart';
 
 /// Manages the active locale and persists the user's language choice.
 ///

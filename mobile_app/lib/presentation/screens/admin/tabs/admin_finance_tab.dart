@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/presentation/providers/admin_provider.dart';
-import 'package:bustan_amari/presentation/screens/admin/widgets/admin_date_filter_bar.dart';
-import 'package:bustan_amari/presentation/screens/admin/widgets/charts/revenue_expenses_chart.dart';
-import 'package:bustan_amari/presentation/screens/admin/widgets/charts/payment_methods_chart.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/presentation/providers/admin_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/widgets/admin_date_filter_bar.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/widgets/charts/revenue_expenses_chart.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/widgets/charts/payment_methods_chart.dart';
 
 class AdminFinanceTab extends StatelessWidget {
   const AdminFinanceTab({super.key});

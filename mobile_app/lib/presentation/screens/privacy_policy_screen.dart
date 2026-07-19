@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -127,9 +127,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
 }
 
 const String _arabicPrivacyPolicy = '''
-سياسة الخصوصية لشركة بستان أماري (Bustan Amari)
+سياسة الخصوصية لشركة إنسديم (Ensdim Landscape System)
 
-تعتبر خصوصية بياناتكم أولوية قصوى لنا في شركة بستان أماري. توضح هذه السياسة كيف نقوم بجمع واستخدام وحماية المعلومات الشخصية التي تقدمونها لنا عند استخدام منصاتنا الرقمية أو طلب خدماتنا.
+تعتبر خصوصية بياناتكم أولوية قصوى لنا في شركة إنسديم. توضح هذه السياسة كيف نقوم بجمع واستخدام وحماية المعلومات الشخصية التي تقدمونها لنا عند استخدام منصاتنا الرقمية أو طلب خدماتنا.
 
 1. المعلومات التي نجمعها
 نقوم بجمع المعلومات الضرورية فقط لتقديم خدمات تنسيق وصيانة الحدائق بأفضل جودة، وتشمل:
@@ -149,7 +149,7 @@ const String _arabicPrivacyPolicy = '''
 
 إرسال عروض الأسعار والفواتير والتقارير الدورية عن حالة الحديقة.
 
-التواصل معكم بخصوص تحديثات الخدمة أو العروض الموسمية لشركة بستان أماري.
+التواصل معكم بخصوص تحديثات الخدمة أو العروض الموسمية لشركة إنسديم.
 
 معالجة المدفوعات الإلكترونية عبر بوابات الدفع المعتمدة.
 
@@ -167,7 +167,7 @@ const String _arabicPrivacyPolicy = '''
 نستخدم ملفات تعريف الارتباط لتحليل حركة المرور على الموقع وفهم تفضيلات العملاء، مما يساعدنا في تطوير تصاميمنا وخدماتنا الزراعية بما يتناسب مع احتياجاتكم.
 
 6. حقوق العميل
-بصفتكم عملاء لشركة بستان أماري، يحق لكم:
+بصفتكم عملاء لشركة إنسديم، يحق لكم:
 
 طلب الوصول إلى بياناتكم الشخصية الموجودة لدينا.
 
@@ -183,15 +183,15 @@ const String _arabicPrivacyPolicy = '''
 
 الموقع: الكويت.
 
-البريد الإلكتروني: info@bustanamary.com
+البريد الإلكتروني: contact@ensdim.com
 
-الواتساب/الهاتف: 96599423149
+الواتساب/الهاتف: 201060162694
 ''';
 
 const String _englishPrivacyPolicy = '''
-Privacy Policy of Bustan Amari
+Privacy Policy of Ensdim Landscape System
 
-Your privacy is a top priority at Bustan Amari. This policy explains how we collect, use, and protect the personal information you provide when using our digital platforms or requesting our services.
+Your privacy is a top priority at Ensdim Landscape System. This policy explains how we collect, use, and protect the personal information you provide when using our digital platforms or requesting our services.
 
 1. Information We Collect
 We collect only the information needed to deliver garden design and maintenance services with the best quality, including:
@@ -211,7 +211,7 @@ Scheduling appointments and on-site visits for inspection or execution.
 
 Sending quotations, invoices, and periodic reports about the status of the garden.
 
-Contacting you about service updates or seasonal offers from Bustan Amari.
+Contacting you about service updates or seasonal offers from Ensdim Landscape System.
 
 Processing online payments through approved payment gateways.
 
@@ -229,7 +229,7 @@ We apply high security standards to protect your data from unauthorized access, 
 We use cookies to analyze website traffic and understand customer preferences, helping us improve our designs and landscaping services to match your needs.
 
 6. Customer Rights
-As a Bustan Amari customer, you have the right to:
+As an Ensdim Landscape System customer, you have the right to:
 
 Request access to your personal data stored with us.
 
@@ -245,7 +245,7 @@ If you have any questions about this privacy policy or how your data is handled,
 
 Location: Kuwait.
 
-Email: info@bustanamary.com
+Email: contact@ensdim.com
 
-WhatsApp/Phone: +96599423149
+WhatsApp/Phone: +201060162694
 ''';

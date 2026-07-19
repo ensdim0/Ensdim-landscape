@@ -2,20 +2,20 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/domain/entities/visit.dart';
-import 'package:bustan_amari/domain/entities/visit_photo.dart';
-import 'package:bustan_amari/presentation/providers/supervisor_provider.dart';
-import 'package:bustan_amari/presentation/screens/supervisor/finish_visit_screen.dart';
-import 'package:bustan_amari/presentation/widgets/empty_state.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
-import 'package:bustan_amari/presentation/widgets/error_view.dart';
-import 'package:bustan_amari/presentation/widgets/status_chip.dart';
-import 'package:bustan_amari/presentation/widgets/supervisor_notes_widget.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/domain/entities/visit.dart';
+import 'package:ensdim_landscape/domain/entities/visit_photo.dart';
+import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/supervisor/finish_visit_screen.dart';
+import 'package:ensdim_landscape/presentation/widgets/empty_state.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/presentation/widgets/error_view.dart';
+import 'package:ensdim_landscape/presentation/widgets/status_chip.dart';
+import 'package:ensdim_landscape/presentation/widgets/supervisor_notes_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
-import 'package:bustan_amari/core/utils/date_formatter.dart' as date_fmt;
+import 'package:ensdim_landscape/core/utils/date_formatter.dart' as date_fmt;
 
 bool _isVideoPath(String path) {
   final normalized = path.split('?').first.toLowerCase();

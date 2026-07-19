@@ -9,12 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:bustan_amari/core/config/env.dart';
-import 'package:bustan_amari/core/notifications/notification_service.dart';
-import 'package:bustan_amari/core/security/device_security_checker.dart';
-import 'package:bustan_amari/core/security/secure_logger.dart';
-import 'package:bustan_amari/infrastructure/di/service_locator.dart';
-import 'package:bustan_amari/app.dart';
+import 'package:ensdim_landscape/core/config/env.dart';
+import 'package:ensdim_landscape/core/notifications/notification_service.dart';
+import 'package:ensdim_landscape/core/security/device_security_checker.dart';
+import 'package:ensdim_landscape/core/security/secure_logger.dart';
+import 'package:ensdim_landscape/infrastructure/di/service_locator.dart';
+import 'package:ensdim_landscape/app.dart';
 
 final ValueNotifier<bool> _backendReady = ValueNotifier(false);
 final ValueNotifier<String?> _backendError = ValueNotifier(null);
@@ -220,7 +220,7 @@ class _BootstrapSplashScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 40),
                     Text(
-                      'Bustan Amari',
+                      'Ensdim Landscape System',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,

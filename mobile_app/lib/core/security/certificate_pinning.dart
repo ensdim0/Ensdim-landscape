@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:bustan_amari/core/security/secure_logger.dart';
+import 'package:ensdim_landscape/core/security/secure_logger.dart';
 
 /// Configures SSL/TLS certificate pinning for the Supabase domain.
 ///
@@ -12,7 +12,7 @@ import 'package:bustan_amari/core/security/secure_logger.dart';
 /// (Subject Public Key Info). Update this when Supabase rotates certs.
 abstract final class CertificatePinning {
   /// Supabase domains to pin.
-  static const _pinnedHost = 'fazohdqthhktvpzlglue.supabase.co';
+  static const _pinnedHost = 'ukvpasapsxhcczplbbin.supabase.co';
 
   /// Creates an [HttpClient] with certificate validation.
   ///

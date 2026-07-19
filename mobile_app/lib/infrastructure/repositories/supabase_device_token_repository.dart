@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:bustan_amari/domain/repositories/i_device_token_repository.dart';
+import 'package:ensdim_landscape/domain/repositories/i_device_token_repository.dart';
 
 class SupabaseDeviceTokenRepository implements IDeviceTokenRepository {
   final SupabaseClient _client;

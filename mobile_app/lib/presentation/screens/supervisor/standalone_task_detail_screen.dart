@@ -1,14 +1,14 @@
 // ignore_for_file: unnecessary_null_comparison
 
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/domain/entities/standalone_task.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/presentation/providers/supervisor_provider.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
 import 'package:intl/intl.dart';
-import 'package:bustan_amari/core/utils/date_formatter.dart' as date_fmt;
+import 'package:ensdim_landscape/core/utils/date_formatter.dart' as date_fmt;
 
 class StandaloneTaskDetailScreen extends StatefulWidget {
   final StandaloneTask task;

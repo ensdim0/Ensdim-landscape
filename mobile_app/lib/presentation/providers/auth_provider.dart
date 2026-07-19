@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:bustan_amari/application/use_cases/login_use_case.dart';
-import 'package:bustan_amari/application/use_cases/logout_use_case.dart';
-import 'package:bustan_amari/core/notifications/notification_service.dart';
-import 'package:bustan_amari/core/security/secure_logger.dart';
-import 'package:bustan_amari/core/types/result.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/domain/repositories/auth_repository.dart';
-import 'package:bustan_amari/infrastructure/storage/secure_storage_service.dart';
+import 'package:ensdim_landscape/application/use_cases/login_use_case.dart';
+import 'package:ensdim_landscape/application/use_cases/logout_use_case.dart';
+import 'package:ensdim_landscape/core/notifications/notification_service.dart';
+import 'package:ensdim_landscape/core/security/secure_logger.dart';
+import 'package:ensdim_landscape/core/types/result.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/domain/repositories/auth_repository.dart';
+import 'package:ensdim_landscape/infrastructure/storage/secure_storage_service.dart';
 
 /// Authentication lifecycle states.
 enum AuthStatus {

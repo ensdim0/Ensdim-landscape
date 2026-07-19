@@ -1,9 +1,9 @@
-cd "e:\Projects\bostanAmary\mobile_app"
-flutter run --dart-define=SUPABASE_URL=https://fazohdqthhktvpzlglue.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhem9oZHF0aGhrdHZwemxnbHVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MDEzNTIsImV4cCI6MjA4NTk3NzM1Mn0.PQ5Jmg4c-J9f2Xhk24Q86tHlajrbYMxzedJXK7MgY8c
+cd "C:\Users\ElSaedy\Desktop\ensdim landscape system\mobile_app"
+flutter run --dart-define=SUPABASE_URL=https://ukvpasapsxhcczplbbin.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrdnBhc2Fwc3hoY2N6cGxiYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDgzMDgsImV4cCI6MjA5OTk4NDMwOH0.LdDUNajE8LZ0ortsJR5twhShn57riN2IpbwE2Aq0g6A
 
 
 
 
-cd "e:\Projects\bostanAmary\mobile_app"
+cd "C:\Users\ElSaedy\Desktop\ensdim landscape system\mobile_app"
 
-flutter build apk --release --dart-define=SUPABASE_URL=https://fazohdqthhktvpzlglue.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhem9oZHF0aGhrdHZwemxnbHVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0MDEzNTIsImV4cCI6MjA4NTk3NzM1Mn0.PQ5Jmg4c-J9f2Xhk24Q86tHlajrbYMxzedJXK7MgY8c
+flutter build apk --release --dart-define=SUPABASE_URL=https://ukvpasapsxhcczplbbin.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrdnBhc2Fwc3hoY2N6cGxiYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MDgzMDgsImV4cCI6MjA5OTk4NDMwOH0.LdDUNajE8LZ0ortsJR5twhShn57riN2IpbwE2Aq0g6A

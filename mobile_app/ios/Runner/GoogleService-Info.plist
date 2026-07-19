@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCnLJ60apVKRIWs0RTgRPOCyHDvrdn0Cu4</string>
+	<string>AIzaSyBQuGgVGK3NkLFjiRsxF6LTcpXxEDwt4CU</string>
 	<key>GCM_SENDER_ID</key>
-	<string>1052446312247</string>
+	<string>43844536936</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.bustanamari.app</string>
+	<string>com.ensdim.landscape</string>
 	<key>PROJECT_ID</key>
-	<string>bustan-amari</string>
+	<string>ensdim-landscape-system</string>
 	<key>STORAGE_BUCKET</key>
-	<string>bustan-amari.firebasestorage.app</string>
+	<string>ensdim-landscape-system.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1052446312247:ios:3e932787bd737e69f3bcb2</string>
+	<string>1:43844536936:ios:7cf3c87637ca1af96dc9dd</string>
 </dict>
 </plist>

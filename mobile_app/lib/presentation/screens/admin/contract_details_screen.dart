@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/presentation/providers/admin_provider.dart';
-import 'package:bustan_amari/presentation/screens/admin/widgets/admin_theme.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/presentation/providers/admin_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/widgets/admin_theme.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
 
 class ContractDetailsScreen extends StatelessWidget {
   final String contractId;

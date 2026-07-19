@@ -4,7 +4,7 @@
 /// All user-facing text (UI, error messages, tooltips) is centralized here.
 const Map<String, String> stringsEn = {
   // --- General ---
-  'appName': 'Bustan Amari',
+  'appName': 'Ensdim Landscape System',
   'appTagline': 'Garden Management',
 
   // --- Login Screen ---
@@ -15,7 +15,7 @@ const Map<String, String> stringsEn = {
   'loginButton': 'Login',
   'newClientQuestion': 'Are you a new client?',
   'privacyPolicy': 'Privacy Policy',
-  'privacyPolicyTitle': 'Bustan Amari Privacy Policy',
+  'privacyPolicyTitle': 'Ensdim Landscape System Privacy Policy',
   'privacyPolicyIntro':
       'This page explains how we collect, use, and protect your data across our digital platforms.',
   'emailRequired': 'Please enter your email or phone number',
@@ -69,6 +69,7 @@ const Map<String, String> stringsEn = {
   'facebook': 'Facebook',
   'instagram': 'Instagram',
   'tiktok': 'TikTok',
+  'website': 'Website',
 
   // --- Supervisor Dashboard ---
   'dashboard': 'Dashboard',
@@ -349,7 +350,7 @@ const Map<String, String> stringsEn = {
 
   // --- Lead Request Screen ---
   'leadRequestTitle': 'New Client Request',
-  'leadRequestGreeting': 'Welcome to Bustan Amari',
+  'leadRequestGreeting': 'Welcome to Ensdim Landscape System',
   'leadRequestSubtitle':
       'Please fill in the details below and we will contact you as soon as possible.',
   'leadRequestNameLabel': 'Full Name',

@@ -2,16 +2,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/domain/entities/zone.dart';
-import 'package:bustan_amari/presentation/providers/supervisor_provider.dart';
-import 'package:bustan_amari/presentation/screens/supervisor/contract_detail_screen.dart';
-import 'package:bustan_amari/presentation/widgets/empty_state.dart';
-import 'package:bustan_amari/presentation/widgets/error_view.dart';
-import 'package:bustan_amari/presentation/widgets/status_chip.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/domain/entities/zone.dart';
+import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/supervisor/contract_detail_screen.dart';
+import 'package:ensdim_landscape/presentation/widgets/empty_state.dart';
+import 'package:ensdim_landscape/presentation/widgets/error_view.dart';
+import 'package:ensdim_landscape/presentation/widgets/status_chip.dart';
 
 class ContractsListScreen extends StatefulWidget {
   final AppUser user;

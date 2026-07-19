@@ -7,8 +7,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import 'package:bustan_amari/core/security/secure_logger.dart';
-import 'package:bustan_amari/domain/repositories/i_device_token_repository.dart';
+import 'package:ensdim_landscape/core/security/secure_logger.dart';
+import 'package:ensdim_landscape/domain/repositories/i_device_token_repository.dart';
 
 // ── Android notification channels ───────────────────────────────────────────
 const _kChannelId = 'line_assignments';

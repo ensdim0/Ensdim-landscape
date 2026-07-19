@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/presentation/providers/auth_provider.dart';
-import 'package:bustan_amari/presentation/providers/locale_provider.dart';
-import 'package:bustan_amari/presentation/screens/admin/widgets/admin_theme.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
+import 'package:ensdim_landscape/presentation/providers/locale_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/widgets/admin_theme.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final AppUser user;

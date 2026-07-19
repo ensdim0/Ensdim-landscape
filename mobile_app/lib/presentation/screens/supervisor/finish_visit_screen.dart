@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/visit.dart';
-import 'package:bustan_amari/presentation/providers/supervisor_provider.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/visit.dart';
+import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
 
 class FinishVisitScreen extends StatefulWidget {
   final Visit visit;

@@ -218,7 +218,7 @@ serve(async (req: Request) => {
       }
     }
 
-    const actualEmail = providedEmail || `${actualPhone}@bustanamari.com`;
+    const actualEmail = providedEmail || `${actualPhone}@ensdim.local`;
 
     let user;
 

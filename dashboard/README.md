@@ -1,4 +1,4 @@
-# Bostan amari اماري (MVP)
+# Ensdim Landscape System (Dashboard)
 
 ## 1) Architecture Explanation
 المشروع مبني على Clean Architecture + DDD لضمان قابلية التوسع بدون إعادة كتابة. تدفق الاعتماد يكون من Presentation → Application → Domain → Infrastructure. جميع الداتا تمر عبر Use Cases ولا يوجد اتصال مباشر بين الواجهة وSupabase.

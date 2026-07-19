@@ -154,7 +154,7 @@ serve(async (req: Request): Promise<Response> => {
     customer: {
       uniqueId: clientUserId.replace(/-/g, "").substring(0, 35),
       name:     customerName  || "عميل",
-      email:    customerEmail || "noreply@bustanamaari.com",
+      email:    customerEmail || "noreply@ensdim.local",
       mobile:   customerMobile || "",
     },
     returnUrl:       UPAYMENTS_RETURN_URL,

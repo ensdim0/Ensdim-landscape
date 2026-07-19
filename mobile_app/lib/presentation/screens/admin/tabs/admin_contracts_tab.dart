@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/presentation/providers/admin_provider.dart';
-import 'package:bustan_amari/presentation/screens/admin/widgets/admin_date_filter_bar.dart';
-import 'package:bustan_amari/presentation/screens/admin/contract_details_screen.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/presentation/providers/admin_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/widgets/admin_date_filter_bar.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/contract_details_screen.dart';
 
 class AdminContractsTab extends StatelessWidget {
   const AdminContractsTab({super.key});

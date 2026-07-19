@@ -1,9 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/presentation/screens/client/payment_success_screen.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/presentation/screens/client/payment_success_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PaymentWebViewScreen extends StatefulWidget {

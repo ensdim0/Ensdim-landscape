@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/l10n/strings_ar.dart';
-import 'package:bustan_amari/core/l10n/strings_en.dart';
+import 'package:ensdim_landscape/core/l10n/strings_ar.dart';
+import 'package:ensdim_landscape/core/l10n/strings_en.dart';
 
 class AppLocalizations {
   final Locale locale;

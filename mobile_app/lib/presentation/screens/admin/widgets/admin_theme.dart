@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
 
 ThemeData buildAdminTheme(ThemeData base) {
   final colorScheme = base.colorScheme.copyWith(

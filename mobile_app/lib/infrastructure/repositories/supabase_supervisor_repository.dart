@@ -1,19 +1,19 @@
 import 'dart:io';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/domain/entities/contract_payment.dart';
-import 'package:bustan_amari/domain/entities/client_comment.dart';
-import 'package:bustan_amari/domain/entities/contract_task.dart';
-import 'package:bustan_amari/domain/entities/geographic_line.dart';
-import 'package:bustan_amari/domain/entities/supervisor_note.dart';
-import 'package:bustan_amari/domain/entities/task_execution.dart';
-import 'package:bustan_amari/domain/entities/task_photo.dart';
-import 'package:bustan_amari/domain/entities/visit.dart';
-import 'package:bustan_amari/domain/entities/visit_photo.dart';
-import 'package:bustan_amari/domain/entities/zone.dart';
-import 'package:bustan_amari/domain/entities/standalone_task.dart';
-import 'package:bustan_amari/domain/repositories/supervisor_repository.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/domain/entities/contract_payment.dart';
+import 'package:ensdim_landscape/domain/entities/client_comment.dart';
+import 'package:ensdim_landscape/domain/entities/contract_task.dart';
+import 'package:ensdim_landscape/domain/entities/geographic_line.dart';
+import 'package:ensdim_landscape/domain/entities/supervisor_note.dart';
+import 'package:ensdim_landscape/domain/entities/task_execution.dart';
+import 'package:ensdim_landscape/domain/entities/task_photo.dart';
+import 'package:ensdim_landscape/domain/entities/visit.dart';
+import 'package:ensdim_landscape/domain/entities/visit_photo.dart';
+import 'package:ensdim_landscape/domain/entities/zone.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/domain/repositories/supervisor_repository.dart';
 
 class SupabaseSupervisorRepository implements SupervisorRepository {
   final SupabaseClient _client;

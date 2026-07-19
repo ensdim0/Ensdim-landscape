@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:bustan_amari/core/constants/roles.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/infrastructure/di/service_locator.dart';
-import 'package:bustan_amari/presentation/providers/auth_provider.dart';
-import 'package:bustan_amari/presentation/providers/client_provider.dart';
-import 'package:bustan_amari/presentation/providers/locale_provider.dart';
-import 'package:bustan_amari/presentation/providers/supervisor_provider.dart';
-import 'package:bustan_amari/presentation/screens/admin/admin_home_screen.dart';
-import 'package:bustan_amari/presentation/screens/client/client_first_login_setup_screen.dart';
-import 'package:bustan_amari/presentation/screens/client_home_screen.dart';
-import 'package:bustan_amari/presentation/screens/login_screen.dart';
-import 'package:bustan_amari/presentation/screens/privacy_policy_screen.dart';
-import 'package:bustan_amari/presentation/screens/security_blocked_screen.dart';
-import 'package:bustan_amari/presentation/screens/splash_screen.dart';
-import 'package:bustan_amari/presentation/screens/supervisor/supervisor_dashboard_screen.dart';
-import 'package:bustan_amari/presentation/screens/lead_request_screen.dart';
+import 'package:ensdim_landscape/core/constants/roles.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/infrastructure/di/service_locator.dart';
+import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
+import 'package:ensdim_landscape/presentation/providers/client_provider.dart';
+import 'package:ensdim_landscape/presentation/providers/locale_provider.dart';
+import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/admin/admin_home_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/client/client_first_login_setup_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/client_home_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/login_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/privacy_policy_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/security_blocked_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/splash_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/supervisor/supervisor_dashboard_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/lead_request_screen.dart';
 
 /// Global navigator key — used by NotificationService to navigate without BuildContext.
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
@@ -261,6 +261,6 @@ class App extends StatelessWidget {
 
   bool _requiresClientFirstLoginSetup(AppUser user) {
     final email = user.email.trim().toLowerCase();
-    return email.isEmpty || email.endsWith('@bustan.local');
+    return email.isEmpty || email.endsWith('@ensdim.local');
   }
 }

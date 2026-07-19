@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/domain/entities/supervisor_note.dart';
+import 'package:ensdim_landscape/domain/entities/supervisor_note.dart';
 
 class SupervisorNotesWidget extends StatefulWidget {
   final String visitId;

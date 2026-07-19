@@ -9,9 +9,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/utils/date_formatter.dart' as date_fmt;
-import 'package:bustan_amari/domain/entities/contract.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/utils/date_formatter.dart' as date_fmt;
+import 'package:ensdim_landscape/domain/entities/contract.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const _kGreen      = AppColors.primary;
@@ -426,9 +426,9 @@ class _InvoiceCard extends StatelessWidget {
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('شركة بستان أماري',
+                  Text('شركة إنسديم',
                       style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
-                  Text('BUSTAN AMARI KUWAIT',
+                  Text('ENSDIM LANDSCAPE SYSTEM',
                       style: TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 0.8)),
                 ],
               ),
@@ -866,7 +866,7 @@ class _InvoiceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text('شركة بستان أماري — الكويت',
+          const Text('شركة إنسديم',
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF8A8480), fontSize: 11)),
           const SizedBox(height: 8),
@@ -1189,7 +1189,7 @@ class _PalmStatRow extends StatelessWidget {
 
 // ── Contact link ──────────────────────────────────────────────────────────────
 
-const String _bustanAmariLinktreeUrl = 'https://linktr.ee/bustanamari.kw';
+const String _ensdimWebsiteUrl = 'https://www.ensdim.com/';
 
 class _ContactLinkButton extends StatelessWidget {
   const _ContactLinkButton();
@@ -1197,7 +1197,7 @@ class _ContactLinkButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => launchUrl(Uri.parse(_bustanAmariLinktreeUrl), mode: LaunchMode.externalApplication),
+      onTap: () => launchUrl(Uri.parse(_ensdimWebsiteUrl), mode: LaunchMode.externalApplication),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),

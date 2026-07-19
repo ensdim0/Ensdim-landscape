@@ -1,11 +1,11 @@
-import 'package:bustan_amari/core/errors/app_exception.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/core/security/input_sanitizer.dart';
-import 'package:bustan_amari/core/security/login_rate_limiter.dart';
-import 'package:bustan_amari/core/security/secure_logger.dart';
-import 'package:bustan_amari/core/types/result.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/domain/repositories/auth_repository.dart';
+import 'package:ensdim_landscape/core/errors/app_exception.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/security/input_sanitizer.dart';
+import 'package:ensdim_landscape/core/security/login_rate_limiter.dart';
+import 'package:ensdim_landscape/core/security/secure_logger.dart';
+import 'package:ensdim_landscape/core/types/result.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/domain/repositories/auth_repository.dart';
 
 /// Handles user login with input validation, rate limiting, and error mapping.
 ///

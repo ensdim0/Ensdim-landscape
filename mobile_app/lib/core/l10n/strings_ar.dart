@@ -4,7 +4,7 @@
 /// All user-facing text (UI, error messages, tooltips) is centralized here.
 const Map<String, String> stringsAr = {
   // --- General ---
-  'appName': 'Bustan Amari',
+  'appName': 'Ensdim Landscape System',
   'appTagline': 'إدارة الحدائق',
 
   // --- Login Screen ---
@@ -15,7 +15,7 @@ const Map<String, String> stringsAr = {
   'loginButton': 'دخول',
   'newClientQuestion': 'هل أنت عميل جديد؟',
   'privacyPolicy': 'سياسة الخصوصية',
-  'privacyPolicyTitle': 'سياسة الخصوصية لشركة بستان أماري',
+  'privacyPolicyTitle': 'سياسة الخصوصية لشركة Ensdim Landscape System',
   'privacyPolicyIntro':
       'نوضح هنا كيف نجمع ونستخدم ونحمي بياناتكم داخل منصاتنا الرقمية.',
   'emailRequired': 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف',
@@ -69,6 +69,7 @@ const Map<String, String> stringsAr = {
   'facebook': 'فيسبوك',
   'instagram': 'إنستغرام',
   'tiktok': 'تيك توك',
+  'website': 'الموقع الإلكتروني',
 
   // --- Supervisor Dashboard ---
   'dashboard': 'لوحة التحكم',
@@ -350,7 +351,7 @@ const Map<String, String> stringsAr = {
 
   // --- شاشة طلب عميل جديد ---
   'leadRequestTitle': 'طلب عميل جديد',
-  'leadRequestGreeting': 'مرحباً بك في بستان اماري',
+  'leadRequestGreeting': 'مرحباً بك في Ensdim Landscape System',
   'leadRequestSubtitle':
       'يرجى تعبئة البيانات التالية وسنقوم بالتواصل معك في أقرب وقت.',
   'leadRequestNameLabel': 'الاسم الكريم',

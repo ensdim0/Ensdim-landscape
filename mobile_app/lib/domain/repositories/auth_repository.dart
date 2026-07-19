@@ -1,4 +1,4 @@
-import 'package:bustan_amari/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
 
 /// Contract for authentication operations.
 ///

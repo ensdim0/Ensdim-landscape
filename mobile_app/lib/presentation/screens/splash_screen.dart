@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
 
 /// Branded splash screen shown while the app checks auth status.
 class SplashScreen extends StatelessWidget {

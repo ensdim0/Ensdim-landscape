@@ -4,30 +4,30 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/domain/entities/contract_payment.dart';
-import 'package:bustan_amari/domain/entities/contract_task.dart';
-import 'package:bustan_amari/domain/entities/standalone_task.dart';
-import 'package:bustan_amari/domain/entities/supervisor_note.dart';
-import 'package:bustan_amari/domain/entities/visit.dart';
-import 'package:bustan_amari/infrastructure/di/service_locator.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/domain/entities/contract_payment.dart';
+import 'package:ensdim_landscape/domain/entities/contract_task.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/domain/entities/supervisor_note.dart';
+import 'package:ensdim_landscape/domain/entities/visit.dart';
+import 'package:ensdim_landscape/infrastructure/di/service_locator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:bustan_amari/presentation/providers/client_provider.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
-import 'package:bustan_amari/presentation/widgets/expandable_section.dart';
-import 'package:bustan_amari/presentation/widgets/status_chip.dart';
-import 'package:bustan_amari/presentation/screens/client/client_standalone_task_detail_screen.dart';
-import 'package:bustan_amari/presentation/screens/client/payment_webview_screen.dart';
-import 'package:bustan_amari/presentation/screens/client/payment_receipt_screen.dart';
+import 'package:ensdim_landscape/presentation/providers/client_provider.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/presentation/widgets/expandable_section.dart';
+import 'package:ensdim_landscape/presentation/widgets/status_chip.dart';
+import 'package:ensdim_landscape/presentation/screens/client/client_standalone_task_detail_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/client/payment_webview_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/client/payment_receipt_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:bustan_amari/core/utils/date_formatter.dart' as date_fmt;
+import 'package:ensdim_landscape/core/utils/date_formatter.dart' as date_fmt;
 
 bool _isVideoPath(String path) {
   final normalized = path.split('?').first.toLowerCase();
@@ -721,7 +721,7 @@ Future<void> _showEditGuardInfoSheet(
 class _ContractImageCard extends StatelessWidget {
   final String? imageUrl;
   static const MethodChannel _galleryChannel = MethodChannel(
-    'bustan_amari/gallery',
+    'ensdim_landscape/gallery',
   );
 
   const _ContractImageCard({required this.imageUrl});
@@ -804,7 +804,7 @@ class _ContractImageCard extends StatelessWidget {
 
       final packageInfo = await PackageInfo.fromPlatform();
       final appName = packageInfo.appName.trim().isEmpty
-          ? 'Bustan Amari'
+          ? 'Ensdim Landscape System'
           : packageInfo.appName.trim();
 
       final extension = _inferImageExtension(

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:bustan_amari/core/notifications/notification_service.dart';
-import 'package:bustan_amari/core/theme/app_colors.dart';
-import 'package:bustan_amari/core/theme/app_dimensions.dart';
-import 'package:bustan_amari/core/l10n/app_localizations.dart';
-import 'package:bustan_amari/domain/entities/app_user.dart';
-import 'package:bustan_amari/domain/entities/contract.dart';
-import 'package:bustan_amari/presentation/providers/auth_provider.dart';
-import 'package:bustan_amari/presentation/providers/client_provider.dart';
-import 'package:bustan_amari/presentation/providers/locale_provider.dart';
-import 'package:bustan_amari/presentation/screens/client/client_contract_details_screen.dart';
-import 'package:bustan_amari/presentation/widgets/custom_app_bar.dart';
-import 'package:bustan_amari/presentation/widgets/error_view.dart';
-import 'package:bustan_amari/presentation/widgets/stat_card.dart';
+import 'package:ensdim_landscape/core/notifications/notification_service.dart';
+import 'package:ensdim_landscape/core/theme/app_colors.dart';
+import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
+import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/domain/entities/app_user.dart';
+import 'package:ensdim_landscape/domain/entities/contract.dart';
+import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
+import 'package:ensdim_landscape/presentation/providers/client_provider.dart';
+import 'package:ensdim_landscape/presentation/providers/locale_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/client/client_contract_details_screen.dart';
+import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
+import 'package:ensdim_landscape/presentation/widgets/error_view.dart';
+import 'package:ensdim_landscape/presentation/widgets/stat_card.dart';
 import 'package:provider/provider.dart';
 
 // Index of the "Payments" tab inside ClientContractDetailsScreen's TabBar.
