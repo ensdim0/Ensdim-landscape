@@ -31,11 +31,32 @@ serve(async (req: Request): Promise<Response> => {
     auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
   });
 
+  // ── Identify which tenant this charge belongs to ───────────────────────────
+  // create-upayment-charge tags notificationUrl with ?tenant_id=... for any
+  // tenant with its own UPayments merchant account, so we know which secret
+  // to verify the HMAC signature with BEFORE trusting anything in the body.
+  // Charges created before this existed (or for tenants without their own
+  // gateway configured) have no query param — those fall back to the
+  // original shared env-var secret, so Ensdim's existing setup is unaffected.
+  const requestUrl = new URL(req.url);
+  const urlTenantId = requestUrl.searchParams.get("tenant_id");
+
+  let webhookSecret = UPAYMENTS_WEBHOOK_SECRET;
+  if (urlTenantId) {
+    try {
+      const { data: credsData } = await supabase.rpc("get_tenant_payment_credentials", { p_tenant_id: urlTenantId });
+      const creds = Array.isArray(credsData) ? (credsData[0] ?? null) : credsData;
+      if (creds?.webhook_secret) webhookSecret = creds.webhook_secret;
+    } catch (e) {
+      console.warn("[upayment-webhook] get_tenant_payment_credentials failed, using env default:", e);
+    }
+  }
+
   // Sandbox/production is admin-configurable at runtime (see get_upayments_sandbox_mode RPC).
   // Fall back to the env-var default if the read fails for any reason.
   let isSandbox = UPAYMENTS_SANDBOX_ENV;
   try {
-    const { data: sandboxData } = await supabase.rpc("get_upayments_sandbox_mode");
+    const { data: sandboxData } = await supabase.rpc("get_upayments_sandbox_mode", { p_tenant_id: urlTenantId });
     if (typeof sandboxData === "boolean") isSandbox = sandboxData;
   } catch (e) {
     console.warn("[upayment-webhook] get_upayments_sandbox_mode failed, using env default:", e);
@@ -45,8 +66,8 @@ serve(async (req: Request): Promise<Response> => {
   // Sandbox: skip signature check (test environment doesn't send valid HMAC)
   if (!isSandbox) {
     const signature = req.headers.get("x-signature") ?? req.headers.get("x-upayments-signature") ?? "";
-    if (UPAYMENTS_WEBHOOK_SECRET && signature) {
-      const isValid = await verifyHmac(rawBody, signature, UPAYMENTS_WEBHOOK_SECRET);
+    if (webhookSecret && signature) {
+      const isValid = await verifyHmac(rawBody, signature, webhookSecret);
       if (!isValid) {
         console.error("[upayment-webhook] invalid HMAC signature");
         return new Response("Unauthorized", { status: 401 });
@@ -95,7 +116,7 @@ serve(async (req: Request): Promise<Response> => {
   // Fall back to the hardcoded 0.13 default if the read fails for any reason.
   let webhookFeeAmount = 0.13;
   try {
-    const { data: feeAmountData } = await supabase.rpc("get_upayments_fee_amount");
+    const { data: feeAmountData } = await supabase.rpc("get_upayments_fee_amount", { p_tenant_id: urlTenantId });
     if (typeof feeAmountData === "number") webhookFeeAmount = feeAmountData;
   } catch (e) {
     console.warn("[upayment-webhook] get_upayments_fee_amount failed, using 0.13 default:", e);
@@ -113,7 +134,7 @@ serve(async (req: Request): Promise<Response> => {
 
   const { data: cpRow } = await supabase
     .from("contract_payments")
-    .select("id, contract_id, amount, gateway_status")
+    .select("id, contract_id, amount, gateway_status, tenant_id")
     .eq(lookupCol, lookupVal)
     .maybeSingle();
 
@@ -123,7 +144,7 @@ serve(async (req: Request): Promise<Response> => {
     // Try standalone_task_payments
     const { data: stRow } = await supabase
       .from("standalone_task_payments")
-      .select("id, task_id, amount, gateway_status")
+      .select("id, task_id, amount, gateway_status, tenant_id")
       .eq(lookupCol, lookupVal)
       .maybeSingle();
 
@@ -255,11 +276,12 @@ serve(async (req: Request): Promise<Response> => {
     }).catch((e) => console.warn("[upayment-webhook] push failed:", e));
   }
 
-  // ── Insert in-app notification for all admins ──────────────────────────────
+  // ── Insert in-app notification for admins of THIS payment's tenant only ────
   const { data: adminRoles } = await supabase
     .from("user_roles")
-    .select("user_id, roles!inner(name)")
-    .eq("roles.name", "admin");
+    .select("user_id, roles!inner(name), users!inner(tenant_id)")
+    .eq("roles.name", "admin")
+    .eq("users.tenant_id", paymentRow.tenant_id as string);
 
   if (adminRoles?.length) {
     const amountLabel    = ((paymentRow.amount as number) ?? 0).toFixed(3);

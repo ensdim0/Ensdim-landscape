@@ -15,6 +15,7 @@ import { GeographicLine } from "@domain/entities/GeographicLine";
 import { ContractType } from "@domain/entities/ContractType";
 import { Zone } from "@domain/entities/Zone";
 import { LoadingState, ErrorState } from "@presentation/components/States";
+import { useTour } from "@presentation/components/tour/useTour";
 import { ContractDetailsModal } from "@presentation/components/ContractDetailsModal";
 import { formatDate } from "@shared/utils/date";
 import { getContractStatusLabel, normalizeContractStatus } from "@shared/contractStatus";
@@ -215,6 +216,29 @@ export const ClientDetailsPage: React.FC = () => {
     return m;
   }, [contracts]);
 
+  useTour(
+    "admin-client-details",
+    loading || error || !client
+      ? []
+      : [
+          {
+            target: '[data-tour="client-profile"]',
+            title: "ملف العميل",
+            content: "بيانات العميل الأساسية: الاسم، البريد الإلكتروني، رقم الهاتف، وتاريخ الانضمام.",
+          },
+          {
+            target: ".dashboard-kpi-grid",
+            title: "ملخص العميل",
+            content: "عدد عقوده، القيمة الإجمالية، الزيارات المنجزة، وإجمالي المدفوع والمتبقي.",
+          },
+          {
+            target: ".admin-tabs",
+            title: "العقود، الزيارات، والمدفوعات",
+            content: "تنقّل بين تفاصيل عقود العميل، سجل زياراته، وسجل مدفوعاته من هنا.",
+          },
+        ]
+  );
+
   if (loading) return <LoadingState />;
   if (error || !client) return <ErrorState text={error || "العميل غير موجود"} />;
 
@@ -236,7 +260,7 @@ export const ClientDetailsPage: React.FC = () => {
       </section>
 
       {/* ── Profile card ── */}
-      <section className="dashboard-panel" style={{ padding: "28px 32px" }}>
+      <section className="dashboard-panel" data-tour="client-profile" style={{ padding: "28px 32px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
 
           {/* Avatar */}

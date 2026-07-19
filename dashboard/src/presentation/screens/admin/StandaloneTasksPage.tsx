@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { container } from "@infrastructure/di/container";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { StandaloneTask } from "@domain/entities/StandaloneTask";
 import { User } from "@domain/entities/User";
 import { Contract } from "@domain/entities/Contract";
@@ -233,6 +234,29 @@ export const StandaloneTasksPage: React.FC = () => {
     });
   }, [tasks, searchQuery, statusFilter, supervisorFilter, paymentFilter, supervisorsMap]);
 
+  useTour(
+    "admin-standalone-tasks",
+    loading || error
+      ? []
+      : [
+          {
+            target: '[data-tour="standalone-tasks-header"]',
+            title: "المهام المستقلة",
+            content: "مهام غير مرتبطة بعقد — زي صيانة لمرة واحدة. من هنا تنشئ مهمة جديدة وتسندها لمشرف.",
+          },
+          {
+            target: '[data-tour="standalone-tasks-filters"]',
+            title: "بحث وفلترة",
+            content: "دوّر بالاسم أو العميل أو المشرف، أو فلتر حسب الحالة وحالة الدفع.",
+          },
+          {
+            target: '[data-tour="standalone-tasks-list"]',
+            title: "قائمة المهام",
+            content: "من هنا تعرض تفاصيل أي مهمة، تعدّلها، أو تحذفها.",
+          },
+        ]
+  );
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;
 
@@ -243,7 +267,7 @@ export const StandaloneTasksPage: React.FC = () => {
 
   return (
     <div style={{ padding: containerPadding, display: "flex", flexDirection: "column", gap: isMobile ? 16 : 24 }}>
-      <div style={headerStyle}>
+      <div style={headerStyle} data-tour="standalone-tasks-header">
         <div>
           <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 800, color: "var(--text-primary)" }}>
             المهام المستقلة
@@ -265,6 +289,7 @@ export const StandaloneTasksPage: React.FC = () => {
 
       <div
         className="card"
+        data-tour="standalone-tasks-filters"
         style={{
           padding: isMobile ? 12 : 16,
           display: "flex",
@@ -302,7 +327,7 @@ export const StandaloneTasksPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+      <div className="card" data-tour="standalone-tasks-list" style={{ padding: 0, overflow: "hidden" }}>
         {isMobile ? (
           <div>
             {filteredTasks.length === 0 ? (

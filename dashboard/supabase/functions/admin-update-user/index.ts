@@ -151,12 +151,56 @@ serve(async (req: Request) => {
       })
     }
 
+    const { data: callerProfile } = await supabaseAdmin
+      .from('users')
+      .select('tenant_id')
+      .eq('id', callerUser.id)
+      .maybeSingle()
+
+    const callerTenantId = callerProfile?.tenant_id
+
+    if (!callerTenantId) {
+      return new Response(JSON.stringify({ error: 'Forbidden', message: 'Caller has no tenant' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      })
+    }
+
     const { id, email, password, fullName, role, phone, assignedLineId, assignmentStartDate, assignmentEndDate, joinDate } = await req.json()
     if (!id) {
       return new Response(JSON.stringify({ error: 'Missing user id' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       })
+    }
+
+    const { data: targetProfile } = await supabaseAdmin
+      .from('users')
+      .select('tenant_id')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (!targetProfile || targetProfile.tenant_id !== callerTenantId) {
+      return new Response(JSON.stringify({ error: 'Not found', message: 'User not found' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 404,
+      })
+    }
+
+    if (role === 'supervisor' && assignedLineId) {
+      const { data: lineRow } = await supabaseAdmin
+        .from('geographic_lines')
+        .select('id')
+        .eq('id', assignedLineId)
+        .eq('tenant_id', callerTenantId)
+        .maybeSingle()
+
+      if (!lineRow) {
+        return new Response(JSON.stringify({ error: 'Invalid line', message: 'assignedLineId does not belong to your company' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        })
+      }
     }
 
     const updateAttrs: any = { user_metadata: {}, app_metadata: {} }

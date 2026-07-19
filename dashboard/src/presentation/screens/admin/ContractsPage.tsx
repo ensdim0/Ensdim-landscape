@@ -68,6 +68,7 @@ import { deleteContract } from "@application/use-cases/admin/deleteContract";
 import { getContracts } from "@application/use-cases/admin/getContracts";
 import { UpdateContractDTO } from "@application/dtos/UpdateContractDTO";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { CustomSelect } from "@presentation/components/CustomSelect";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { formatDate } from "@shared/utils/date";
@@ -643,6 +644,29 @@ export const ContractsPage: React.FC = () => {
       URL.revokeObjectURL(url);
       notify(`تم تصدير ${exportSource.length} عقد${selectedFilteredContracts.length > 0 ? ' (العقود المحددة)' : ''}`);
   };
+
+  useTour(
+    "admin-contracts",
+    isLoading || error
+      ? []
+      : [
+          {
+            target: ".contracts-header",
+            title: "إدارة العقود",
+            content: "من هنا تشوف إجمالي عدد العقود وتضيف عقد جديد.",
+          },
+          {
+            target: ".contracts-filters",
+            title: "بحث وفلترة",
+            content: "دوّر برقم العقد أو اسم العميل، أو فلتر حسب الخط والمنطقة ونوع العقد، وشوف العقود المتأخرة بالدفع بضغطة واحدة.",
+          },
+          {
+            target: ".contracts-list-shell",
+            title: "قائمة العقود",
+            content: "كل صف عقد باستطاعتك فتحه لعرض التفاصيل، وممكن تحدد أكتر من عقد وتصدرهم إكسل.",
+          },
+        ]
+  );
 
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;

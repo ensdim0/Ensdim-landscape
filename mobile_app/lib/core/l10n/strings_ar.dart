@@ -387,4 +387,39 @@ const Map<String, String> stringsAr = {
   'minutesAgo': 'منذ {0} دقيقة',
   'hoursAgo': 'منذ {0} ساعة',
   'daysAgo': 'منذ {0} يوم',
+
+  // --- الشرح التفاعلي (Onboarding Tour) ---
+  'tourNext': 'التالي',
+  'tourFinish': 'تمام، فهمت',
+  'tourSkip': 'تخطي',
+  'tourReplay': 'شرح الصفحة',
+  'tourHomeNavTitle': 'التنقل بين الأقسام',
+  'tourHomeNavDesc':
+      'من هنا تقدر تتنقل بين نظرة عامة على عقودك، كل عقودك بالتفصيل، وحسابك الشخصي.',
+  'tourHomeSummaryTitle': 'ملخصك المالي',
+  'tourHomeSummaryDesc':
+      'هنا تشوف إجمالي المبلغ المدفوع والمتبقي من عقودك بنظرة واحدة.',
+  'tourHomeQuickAccessTitle': 'إحصائيات سريعة',
+  'tourHomeQuickAccessDesc':
+      'عدد عقودك، المبلغ المتبقي، المدفوع، وعدد الزيارات المكتملة.',
+  'tourHomeContractsTitle': 'عقودك',
+  'tourHomeContractsDesc':
+      'اضغط على أي عقد عشان تشوف تفاصيله، الزيارات، والمدفوعات الخاصة بيه.',
+  'tourHomeHelpTitle': 'محتاج تعيد الشرح؟',
+  'tourHomeHelpDesc': 'اضغط هنا في أي وقت عشان تشوف شرح الصفحة تاني.',
+  'tourContractHeaderTitle': 'ملخص العقد',
+  'tourContractHeaderDesc': 'رقم العقد، حالته، القيمة الإجمالية، وتاريخ البدء.',
+  'tourContractTabsTitle': 'تفاصيل العقد',
+  'tourContractTabsDesc':
+      'تنقّل بين نظرة عامة، الزيارات، المدفوعات، بنود العقد، والمهام المستقلة المرتبطة بيه.',
+  'tourTaskHeaderTitle': 'ملخص المهمة',
+  'tourTaskHeaderDesc': 'عنوان المهمة، العقد المرتبطة بيه، حالتها، وتاريخها.',
+  'tourTaskDetailsTitle': 'تفاصيل المهمة',
+  'tourTaskDetailsDesc':
+      'كل بيانات المهمة بالتفصيل: التاريخ، التكلفة، العنوان، وبيانات العميل.',
+
+  // --- تنبيه دخول الأدمن ---
+  'adminNotSupportedTitle': 'هذا التطبيق لا يدعم حسابات الإدارة',
+  'adminNotSupportedMessage':
+      'حساب الأدمن يُدار من خلال لوحة التحكم على المتصفح فقط. برجاء تسجيل الدخول من هناك.',
 };

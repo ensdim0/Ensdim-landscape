@@ -47,6 +47,7 @@ import { getAllVisitTasks } from "@application/use-cases/admin/getContractTasks"
 import { createUser } from "@application/use-cases/admin/createUser";
 
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { SupervisorNotesEditor } from "@presentation/components/SupervisorNotesEditor";
 import { getVisitStatusStyle } from "@shared/visitStatus";
@@ -489,6 +490,24 @@ export const SupervisorsPage: React.FC = () => {
 
   const assignedCount = supervisors.filter(s => s.assignedLineId).length;
   const unassignedCount = supervisors.length - assignedCount;
+
+  useTour(
+    "admin-supervisors",
+    isLoading || error
+      ? []
+      : [
+          {
+            target: ".supervisors-sidebar",
+            title: "قائمة المشرفين",
+            content: "من هنا تشوف كل المشرفين، تضيف مشرف جديد، وتعرف مين معيّن على خط ومين لسه متاح.",
+          },
+          {
+            target: ".supervisors-main",
+            title: "تفاصيل المشرف",
+            content: "اضغط على أي مشرف من القائمة عشان تشوف بياناته، الخط المعيّن عليه، وعقوده.",
+          },
+        ]
+  );
 
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;

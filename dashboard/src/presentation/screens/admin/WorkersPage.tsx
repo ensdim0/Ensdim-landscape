@@ -3,6 +3,7 @@ import { container } from "@infrastructure/di/container";
 import { Worker } from "@domain/entities/Worker";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { useSearchParams } from "react-router-dom";
 import { syncWorkerVisaNotifications } from "@presentation/notifications/syncWorkerVisaNotifications";
 import {
@@ -134,6 +135,29 @@ export const WorkersPage = () => {
     openedWorkerIdRef.current = workerIdFromNotification;
     setEditingWorker(worker);
   }, [loading, workerIdFromNotification, workers]);
+
+  useTour(
+    "admin-workers",
+    loading || error
+      ? []
+      : [
+          {
+            target: ".workers-page-header",
+            title: "إدارة العمالة",
+            content: "من هنا تشوف عدد العمالة المسجلة وتضيف عامل جديد.",
+          },
+          {
+            target: ".workers-page-stats",
+            title: "تنبيهات التأشيرة",
+            content: "إجمالي الرواتب الشهرية، وعدد العمال اللي تأشيرتهم قربت تنتهي أو انتهت بالفعل.",
+          },
+          {
+            target: ".workers-page-table-card",
+            title: "قائمة العمالة",
+            content: "من هنا تعدّل بيانات أي عامل أو تحذفه.",
+          },
+        ]
+  );
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;

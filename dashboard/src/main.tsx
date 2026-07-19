@@ -6,6 +6,7 @@ import { App } from "@presentation/App";
 import { initSecurityShield } from "@core/security/shield";
 import { initLogger } from "@core/logger";
 import "@presentation/styles/base.css";
+import "@presentation/styles/tour.css";
 
 // Initialize observability first so any early errors are captured.
 initLogger();

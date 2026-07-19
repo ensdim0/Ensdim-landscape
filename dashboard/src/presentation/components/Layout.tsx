@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Sidebar } from "@presentation/components/Sidebar";
 import { Header } from "@presentation/components/Header";
+import { TourOverlay } from "@presentation/components/tour/TourOverlay";
 
 export const Layout = ({ children }: { children: ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,6 +28,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
         <Header onMenuClick={() => setIsSidebarOpen(true)} />
         <main className="content">{children}</main>
       </div>
+      <TourOverlay />
     </div>
   );
 };

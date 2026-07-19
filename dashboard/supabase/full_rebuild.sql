@@ -1,3 +1,10 @@
+-- ⚠️ DEPRECATED — DO NOT RUN. Frozen at 2026-02-18, predates ~90 later
+-- migrations (multi-tenancy, payments, notifications, fleet, workers, ...).
+-- Kept only for historical reference. The real schema = every file in
+-- dashboard/supabase/migrations/ applied in order, starting from this
+-- snapshot's contents. To rebuild a fresh project, use Supabase's own
+-- migration tooling against that folder instead of pasting this file.
+--
 -- ╔══════════════════════════════════════════════════════════════════════╗
 -- ║  FULL DATABASE REBUILD - Final Schema State (2026-02-18)          ║
 -- ║  Run this in Supabase SQL Editor to recreate everything           ║

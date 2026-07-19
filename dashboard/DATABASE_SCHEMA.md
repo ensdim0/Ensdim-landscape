@@ -1,6 +1,21 @@
 # توثيق هيكل قاعدة البيانات (Database Schema Documentation)
 
-يحتوي هذا الملف على شرح تفصيلي لجميع جداول قاعدة البيانات، العلاقات بينها، والدوال (Functions) والسياسات الأمنية (RLS) المستخدمة في النظام.
+> ⚠️ **الملف ده قديم ومش متزامن مع آخر تعديلات فعلية** (لسه بيوصف جدول `profiles` وجدول `clients` اللي اتشالوا من زمان). **المصدر الموثوق الوحيد للسكيما الحالية هو مجلد `dashboard/supabase/migrations/` بالترتيب** — لو محتاج تتأكد من شكل جدول أو RLS policy معينة، ارجع للـ migration اللي عرّفتها آخر مرة بدل الاعتماد على الملف ده. نفس الكلام على `complete_setup.sql` و `full_rebuild.sql` في نفس المجلد.
+
+## Multi-tenancy (SaaS)
+
+النظام بقى multi-tenant (شركات عملاء متعددة على نفس قاعدة البيانات، معزولين عن بعض بـ Row-Level Security):
+
+- جدول `public.tenants`: كل صف = شركة عميل مشتركة في المنصة (id, name, slug, status).
+- كل جدول رئيسي (contracts, users, zones, ...) عنده عمود `tenant_id` (NOT NULL، DEFAULT = `public.current_tenant_id()` — بيتحسب تلقائيًا من شركة المستخدم اللي بيسجل دخول).
+- `public.current_tenant_id()`: بيرجع الـ tenant بتاع المستخدم الحالي (`auth.uid()`). كل RLS policy تقريبًا بتستخدمها جنب `is_admin()`.
+- `public.is_super_admin()` + `users.is_platform_owner`: مالك المنصة (مش أدمن شركة) — بيدير كل الشركات عن طريق تطبيق منفصل (`platform-admin/`)، مش عن طريق الداشبورد ده.
+- `private.tenant_payment_settings`: بيانات اعتماد UPayments (API token, webhook secret, ...) منفصلة لكل شركة.
+- تفاصيل الـ migrations بالترتيب الزمني في `dashboard/supabase/migrations/2026-07-19_*` لحد `2026-07-25_*`.
+
+---
+
+يحتوي هذا الملف على شرح تفصيلي لجميع جداول قاعدة البيانات، العلاقات بينها، والدوال (Functions) والسياسات الأمنية (RLS) المستخدمة في النظام. **(النسخة اللي تحت دي قديمة، شوف التحذير فوق.)**
 
 ## 1. ملخص الجداول (Tables Summary)
 

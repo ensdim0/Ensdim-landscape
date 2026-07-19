@@ -25,6 +25,7 @@ import { Zone } from "@domain/entities/Zone";
 import { ContractType } from "@domain/entities/ContractType";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useAuth } from "@presentation/state/useAuth";
+import { useTour } from "@presentation/components/tour/useTour";
 import { formatDate } from "@shared/utils/date";
 import { getContractStatusLabel, normalizeContractStatus } from "@shared/contractStatus";
 import { supabase } from "@infrastructure/supabase/client";
@@ -142,6 +143,39 @@ export const AdminDashboard = () => {
       return end > today && end <= thirtyDaysFromNow;
     });
   }, [activeContracts]);
+
+  useTour(
+    "admin-dashboard",
+    loading || error
+      ? []
+      : [
+          {
+            target: '[data-tour="dashboard-hero"]',
+            title: "أهلاً بيك في لوحة التحكم",
+            content: "من هنا تقدر تتابع حالة التشغيل اليومي وتحدّث البيانات بضغطة زر.",
+          },
+          {
+            target: '[data-tour="dashboard-kpi-grid"]',
+            title: "أهم الأرقام بنظرة واحدة",
+            content: "العقود النشطة، عدد العملاء، الفريق الميداني، والمركبات والأجهزة. اضغط على أي بطاقة عشان تروح لصفحتها.",
+          },
+          {
+            target: '[data-tour="dashboard-recent-contracts"]',
+            title: "أحدث العقود",
+            content: "آخر العقود المضافة في النظام، مع تنبيه لو فيه عقود قريبة من الانتهاء.",
+          },
+          {
+            target: '[data-tour="sidebar-nav"]',
+            title: "القائمة الجانبية",
+            content: "من هنا توصل لكل أقسام النظام: العقود، العملاء، الفريق الميداني، والمزيد.",
+          },
+          {
+            target: '[data-tour="tour-help-button"]',
+            title: "محتاج تعيد الشرح؟",
+            content: "اضغط هنا في أي وقت عشان تشوف شرح الصفحة اللي انت فيها تاني.",
+          },
+        ]
+  );
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;
@@ -272,7 +306,7 @@ export const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard fade-in">
-      <section className="dashboard-hero">
+      <section className="dashboard-hero" data-tour="dashboard-hero">
         <div className="dashboard-hero-content">
           <h1 className="dashboard-hero-title">مرحبًا، {user?.fullName || "مدير النظام"}</h1>
           <p className="dashboard-hero-subtitle">
@@ -288,7 +322,7 @@ export const AdminDashboard = () => {
         </div>
       </section>
 
-      <section className="dashboard-kpi-grid">
+      <section className="dashboard-kpi-grid" data-tour="dashboard-kpi-grid">
         {kpiCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -320,7 +354,10 @@ export const AdminDashboard = () => {
         })}
       </section>
 
-      <section className="dashboard-panel dashboard-recent-contracts-panel">
+      <section
+        className="dashboard-panel dashboard-recent-contracts-panel"
+        data-tour="dashboard-recent-contracts"
+      >
         <div className="dashboard-panel-header">
           <h3 className="dashboard-panel-title">
             <Clock size={17} />

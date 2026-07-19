@@ -22,6 +22,7 @@ import {
 import { supabase } from "@infrastructure/supabase/client";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { CustomSelect } from "@presentation/components/CustomSelect";
 import { formatDate } from "@shared/utils/date";
 
@@ -254,6 +255,29 @@ export const ContactRequestsPage = () => {
     }
   };
 
+  useTour(
+    "admin-contact-requests",
+    loading || error
+      ? []
+      : [
+          {
+            target: ".contact-requests-page-header",
+            title: "طلبات التواصل",
+            content: "متابعة رسائل العملاء الجدد والطلبات القادمة من التطبيق، مع إمكانية تحديث القائمة.",
+          },
+          {
+            target: ".contact-requests-page-stats",
+            title: "نظرة سريعة",
+            content: "إجمالي الطلبات، الجديدة منها، اللي تم التواصل معاها، واللي اتحولت لعميل فعلي.",
+          },
+          {
+            target: '[data-tour="contact-requests-list"]',
+            title: "قائمة الطلبات",
+            content: "اضغط على أي طلب عشان تشوف تفاصيله وتغيّر حالته، أو احذفه لو مش محتاجه.",
+          },
+        ]
+  );
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;
 
@@ -392,7 +416,7 @@ export const ContactRequestsPage = () => {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: "hidden", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, border: "1px solid #e4e0d8" }}>
+      <div data-tour="contact-requests-list" className="card" style={{ padding: 0, overflow: "hidden", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, border: "1px solid #e4e0d8" }}>
           <div style={{ overflow: isMobile ? "visible" : "auto", height: "100%" }}>
           {isMobile ? (
               <div style={{ padding: 12 }}>

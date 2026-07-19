@@ -7,6 +7,7 @@ import { Vehicle } from "@domain/entities/Vehicle";
 import { CompanyPhone } from "@domain/entities/CompanyPhone";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { CustomSelect } from "@presentation/components/CustomSelect";
 import { createLine } from "@application/use-cases/admin/createLine";
 import { updateLine } from "@application/use-cases/admin/updateLine";
@@ -200,14 +201,37 @@ export const LinesPage = () => {
   
   const selectedLine = lines.find(l => l.id === selectedLineId);
 
+  useTour(
+    "admin-lines",
+    loading || error
+      ? []
+      : [
+          {
+            target: '[data-tour="lines-header"]',
+            title: "إدارة خطوط السير",
+            content: "من هنا تضيف خط سير جديد وتشوف عدد الخطوط الحالية.",
+          },
+          {
+            target: '[data-tour="lines-filters"]',
+            title: "البحث والفلترة",
+            content: "دوّر على خط معيّن بالاسم أو رقم السيارة، أو فلتر حسب نوع العقد والحالة (نشط/متوقف).",
+          },
+          {
+            target: '[data-tour="lines-table"]',
+            title: "قائمة الخطوط",
+            content: "اضغط على عدد المناطق لأي خط عشان تشوف وترتب مناطقه، أو استخدم أيقونات التعديل والحذف.",
+          },
+        ]
+  );
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;
 
   return (
     <div style={{ padding: isCompactLayout ? '16px 12px 20px' : '24px', display: 'flex', flexDirection: 'column', height: isCompactLayout ? 'auto' : '100vh', minHeight: isCompactLayout ? '100%' : '100vh', gap: isCompactLayout ? '16px' : '24px', backgroundColor: 'var(--bg-app)', boxSizing: 'border-box', overflowY: isCompactLayout ? 'visible' : 'hidden' }}>
-        
+
          {/* Header Section */}
-         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isCompactLayout ? 'stretch' : 'center', gap: isCompactLayout ? '12px' : '16px', flexDirection: isCompactLayout ? 'column' : 'row' }}>
+         <div data-tour="lines-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: isCompactLayout ? 'stretch' : 'center', gap: isCompactLayout ? '12px' : '16px', flexDirection: isCompactLayout ? 'column' : 'row' }}>
             <div style={{ minWidth: 0 }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Map size={28} style={{color: 'var(--color-primary)'}} />
@@ -231,8 +255,8 @@ export const LinesPage = () => {
         </div>
 
         {/* Filters Toolbar */}
-        <div style={{ 
-            backgroundColor: 'var(--bg-card)', 
+        <div data-tour="lines-filters" style={{
+            backgroundColor: 'var(--bg-card)',
             padding: isCompactLayout ? '12px' : '16px', 
             borderRadius: 'var(--radius-lg)', 
             boxShadow: 'var(--shadow-sm)',
@@ -301,7 +325,7 @@ export const LinesPage = () => {
         </div>
 
         {/* Content Table */}
-         <div style={{ flex: 1, overflow: isCompactLayout ? 'visible' : 'hidden', paddingBottom: '2px' }}>
+         <div data-tour="lines-table" style={{ flex: 1, overflow: isCompactLayout ? 'visible' : 'hidden', paddingBottom: '2px' }}>
             <div className="card" style={{ height: isCompactLayout ? 'auto' : '100%', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flex: 1, overflowY: isCompactLayout ? 'visible' : 'auto' }}>
                     {!isCompactLayout ? (

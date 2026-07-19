@@ -25,6 +25,7 @@ import { updateUser } from "@application/use-cases/admin/updateUser";
 import { deleteUser } from "@application/use-cases/admin/deleteUser";
 
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { CustomSelect } from "@presentation/components/CustomSelect";
 
@@ -147,6 +148,29 @@ export const AdminUsersPage: React.FC = () => {
           .map(part => part[0])
           .join("")
           .toUpperCase();
+
+  useTour(
+    "admin-users",
+    isLoading || error
+      ? []
+      : [
+          {
+            target: ".admin-users-header",
+            title: "إدارة المستخدمين",
+            content: "من هنا تشوف كل مستخدمي النظام وتضيف مستخدم جديد (مدير، مشرف، أو عميل).",
+          },
+          {
+            target: ".admin-users-toolbar",
+            title: "بحث وفلترة",
+            content: "دوّر بالاسم أو البريد الإلكتروني، أو فلتر المستخدمين حسب نوعهم.",
+          },
+          {
+            target: ".admin-users-list-card",
+            title: "قائمة المستخدمين",
+            content: "من هنا تعدّل بيانات أي مستخدم أو تدير صلاحياته.",
+          },
+        ]
+  );
 
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;

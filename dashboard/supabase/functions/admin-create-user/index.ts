@@ -153,6 +153,21 @@ serve(async (req: Request) => {
       })
     }
 
+    const { data: callerProfile, error: callerProfileError } = await supabaseAdmin
+      .from('users')
+      .select('tenant_id')
+      .eq('id', callerUser.id)
+      .maybeSingle()
+
+    const callerTenantId = callerProfile?.tenant_id
+
+    if (callerProfileError || !callerTenantId) {
+      return new Response(JSON.stringify({ error: 'Forbidden', message: 'Caller has no tenant' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      })
+    }
+
     let { email, password, fullName, role, phone, assignedLineId, assignmentStartDate, assignmentEndDate } = await req.json()
     const normalizedPhone = typeof phone === 'string' ? phone.trim() : '';
     const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
@@ -220,6 +235,22 @@ serve(async (req: Request) => {
 
     const actualEmail = providedEmail || `${actualPhone}@ensdim.local`;
 
+    if ((role || 'client') === 'supervisor' && assignedLineId) {
+      const { data: lineRow, error: lineError } = await supabaseAdmin
+        .from('geographic_lines')
+        .select('id')
+        .eq('id', assignedLineId)
+        .eq('tenant_id', callerTenantId)
+        .maybeSingle();
+
+      if (lineError || !lineRow) {
+        return new Response(JSON.stringify({ error: 'Invalid line', message: 'assignedLineId does not belong to your company' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        });
+      }
+    }
+
     let user;
 
     const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -227,7 +258,7 @@ serve(async (req: Request) => {
       password,
       email_confirm: true,
       app_metadata: { role: role || 'client' },
-      user_metadata: { fullName, role: role || 'client', phone: actualPhone }
+      user_metadata: { fullName, role: role || 'client', phone: actualPhone, tenant_id: callerTenantId }
     })
 
     if (createError) {
@@ -264,6 +295,7 @@ serve(async (req: Request) => {
         full_name: fullName,
         email: actualEmail,
         phone: actualPhone,
+        tenant_id: callerTenantId,
         assigned_line_id: targetRole === 'supervisor' ? (assignedLineId || null) : null,
         assignment_start_date: targetRole === 'supervisor' ? (assignmentStartDate || null) : null,
         assignment_end_date: targetRole === 'supervisor' ? (assignmentEndDate || null) : null,

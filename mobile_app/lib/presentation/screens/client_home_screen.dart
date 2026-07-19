@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ensdim_landscape/core/notifications/notification_service.dart';
+import 'package:ensdim_landscape/core/services/onboarding_tour_service.dart';
 import 'package:ensdim_landscape/core/theme/app_colors.dart';
 import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
 import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
@@ -9,6 +10,7 @@ import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/client_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/locale_provider.dart';
 import 'package:ensdim_landscape/presentation/screens/client/client_contract_details_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/client_home_tour_steps.dart';
 import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
 import 'package:ensdim_landscape/presentation/widgets/error_view.dart';
 import 'package:ensdim_landscape/presentation/widgets/stat_card.dart';
@@ -30,6 +32,13 @@ class _ClientHomeScreenState extends State<ClientHomeScreen>
     with WidgetsBindingObserver {
   int _currentIndex = 0;
 
+  // Onboarding tour target keys — must stay stable across rebuilds.
+  final _tourSummaryKey = GlobalKey();
+  final _tourQuickAccessKey = GlobalKey();
+  final _tourContractsKey = GlobalKey();
+  final _tourNavKey = GlobalKey();
+  final _tourHelpKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +46,47 @@ class _ClientHomeScreenState extends State<ClientHomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<ClientProvider>().loadDashboard();
       _checkPendingNavigation();
+      // Wait one more frame so the dashboard content (not its loading
+      // spinner) is what's actually mounted when we look up tour keys.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTour());
     });
+  }
+
+  Future<void> _maybeShowTour({bool force = false}) async {
+    if (!mounted) return;
+    final provider = context.read<ClientProvider>();
+    if (provider.status == ClientDataStatus.error) return;
+
+    final steps = buildClientHomeTourSteps(
+      context,
+      summaryKey: _tourSummaryKey,
+      quickAccessKey: _tourQuickAccessKey,
+      contractsKey: _tourContractsKey,
+      navKey: _tourNavKey,
+      helpKey: _tourHelpKey,
+    );
+
+    if (force) {
+      OnboardingTourService.forceShow(context, steps);
+    } else {
+      await OnboardingTourService.showIfUnseen(
+        context,
+        userId: widget.user.id,
+        screenId: 'client_home',
+        steps: steps,
+      );
+    }
+  }
+
+  void _onHelpPressed() {
+    if (_currentIndex != 0) {
+      setState(() => _currentIndex = 0);
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _maybeShowTour(force: true),
+      );
+    } else {
+      _maybeShowTour(force: true);
+    }
   }
 
   @override
@@ -109,7 +158,12 @@ class _ClientHomeScreenState extends State<ClientHomeScreen>
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final screens = [
-      _ClientDashboardTab(user: widget.user),
+      _ClientDashboardTab(
+        user: widget.user,
+        summaryKey: _tourSummaryKey,
+        quickAccessKey: _tourQuickAccessKey,
+        contractsKey: _tourContractsKey,
+      ),
       _ClientContractsTab(user: widget.user),
       const _ClientAccountTab(),
     ];
@@ -131,6 +185,12 @@ class _ClientHomeScreenState extends State<ClientHomeScreen>
         ],
         actions: [
           IconButton(
+            key: _tourHelpKey,
+            icon: const Icon(Icons.help_outline_rounded),
+            tooltip: t.tr('tourReplay'),
+            onPressed: _onHelpPressed,
+          ),
+          IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: t.tr('logout'),
             onPressed: () => _confirmLogout(context),
@@ -139,6 +199,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen>
       ),
       body: screens[_currentIndex],
       bottomNavigationBar: NavigationBar(
+        key: _tourNavKey,
         backgroundColor: AppColors.cardBackground,
         indicatorColor: AppColors.primary100,
         surfaceTintColor: Colors.transparent,
@@ -209,8 +270,16 @@ class _ClientHomeScreenState extends State<ClientHomeScreen>
 
 class _ClientDashboardTab extends StatelessWidget {
   final AppUser user;
+  final GlobalKey summaryKey;
+  final GlobalKey quickAccessKey;
+  final GlobalKey contractsKey;
 
-  const _ClientDashboardTab({required this.user});
+  const _ClientDashboardTab({
+    required this.user,
+    required this.summaryKey,
+    required this.quickAccessKey,
+    required this.contractsKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -245,6 +314,7 @@ class _ClientDashboardTab extends StatelessWidget {
             children: [
               // Welcome Card - simplified design
               Card(
+                key: summaryKey,
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(
@@ -335,6 +405,7 @@ class _ClientDashboardTab extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               GridView.count(
+                key: quickAccessKey,
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 crossAxisCount: 2,
@@ -372,24 +443,33 @@ class _ClientDashboardTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 18),
-              Text(
-                t.tr('myContracts'),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 10),
-              if (provider.contracts.isEmpty)
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Text(t.tr('noContracts')),
+              Column(
+                key: contractsKey,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    t.tr('myContracts'),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                )
-              else
-                ...provider.contracts
-                    .take(3)
-                    .map((contract) => _ClientContractTile(contract: contract)),
+                  const SizedBox(height: 10),
+                  if (provider.contracts.isEmpty)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Text(t.tr('noContracts')),
+                      ),
+                    )
+                  else
+                    ...provider.contracts
+                        .take(3)
+                        .map(
+                          (contract) =>
+                              _ClientContractTile(contract: contract),
+                        ),
+                ],
+              ),
             ],
           ),
         );

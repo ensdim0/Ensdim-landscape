@@ -11,6 +11,7 @@ import { formatDate, formatDateTime } from "@shared/utils/date";
 import type { Contract } from "@domain/entities/Contract";
 import type { Visit } from "@domain/entities/Visit";
 import type { ContractTask } from "@domain/entities/ContractTask";
+import { useTour } from "@presentation/components/tour/useTour";
 
 const getNotificationTypeLabel = (type: string) => {
   switch (type) {
@@ -202,6 +203,19 @@ export const VisitNotificationPage = () => {
     return "مركز الإشعارات";
   }, [notificationType]);
 
+  useTour(
+    "admin-visit-notifications",
+    notificationsLoading
+      ? []
+      : [
+          {
+            target: '[data-tour="notifications-list"]',
+            title: "مركز الإشعارات",
+            content: "كل إشعارات النظام في مكان واحد — تعليقات العملاء، إنهاء الزيارات، ملاحظات المشرفين، وتنبيهات انتهاء العقود والتأشيرات. اضغط على أي إشعار عشان تشوف تفاصيله.",
+          },
+        ]
+  );
+
   return (
     <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -218,7 +232,7 @@ export const VisitNotificationPage = () => {
         <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>{pageTitle}</div>
       </div>
 
-      <div className="dashboard-panel" style={{ padding: 16 }}>
+      <div className="dashboard-panel" data-tour="notifications-list" style={{ padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 12 }}>
           <div>
             <div style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>

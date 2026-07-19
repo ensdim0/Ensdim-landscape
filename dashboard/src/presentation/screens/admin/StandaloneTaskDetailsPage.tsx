@@ -8,6 +8,7 @@ import { PaymentMethod } from "@domain/entities/ContractPayment";
 import { User } from "@domain/entities/User";
 import { X, FileText } from "lucide-react";
 import { formatDateTime } from "@shared/utils/date";
+import { useTour } from "@presentation/components/tour/useTour";
 
 const PAYMENT_METHOD_OPTIONS: { id: PaymentMethod; label: string }[] = [
   { id: "cash",    label: "نقدي"      },
@@ -304,6 +305,26 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
     return s.length > n ? s.substring(0, n) + '...' : s;
   };
 
+  useTour(
+    "admin-standalone-task-details",
+    loading || !task
+      ? []
+      : [
+          {
+            target: '[data-tour="task-details-header"]',
+            title: "تفاصيل المهمة",
+            content: viewOnly
+              ? "بيانات المهمة الأساسية وحالتها الحالية."
+              : "من هنا تقدر تغيّر حالة المهمة (قيد الانتظار، جارية، منتهية...).",
+          },
+          {
+            target: '[data-tour="task-details-meta"]',
+            title: "بيانات المهمة",
+            content: "المشرف المسؤول، بيانات العميل، العقد المرتبط، التكلفة، والموقع.",
+          },
+        ]
+  );
+
   if (loading) return null;
   if (!task) return null;
 
@@ -311,7 +332,7 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120, overflow: 'hidden' }}>
       <div style={{ width: '92%', maxWidth: 820, maxHeight: 'calc(100vh - 40px)', background: 'var(--bg-card)', padding: 12, borderRadius: 8, boxShadow: 'var(--shadow-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {/* header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div data-tour="task-details-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div style={{ padding: 6, background: 'var(--primary-light)', borderRadius: 8, color: 'var(--color-primary)' }}><FileText size={20} /></div>
             <div>
@@ -333,7 +354,7 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
         {/* scrollable body */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', flex: 1, minHeight: 0 }}>
         {/* meta row */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+        <div data-tour="task-details-meta" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
           <div><strong style={{ fontWeight: 700, marginRight: 6 }}>المشرف:</strong> {supervisorId ? supervisors.find(s => s.id === supervisorId)?.fullName || '—' : '—'}</div>
           <div><strong style={{ fontWeight: 700, marginRight: 6 }}>الهاتف:</strong> {task.clientPhone || '—'}</div>
           <div><strong style={{ fontWeight: 700, marginRight: 6 }}>العقد:</strong> {contractId ? (contracts.find(c => c.id === contractId)?.code ?? '—') : '—'}</div>

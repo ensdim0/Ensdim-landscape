@@ -3,6 +3,7 @@ import { Activity, AlertCircle, CheckCircle2, Clock3, Filter, RefreshCw, Search,
 import { supabase } from "@infrastructure/supabase/client";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 
 type RequestStatus = "pending" | "approved" | "rejected";
 
@@ -259,6 +260,29 @@ export const ContractStatusRequestsPage = () => {
     },
   ];
 
+  useTour(
+    "admin-contract-status-requests",
+    loading || error
+      ? []
+      : [
+          {
+            target: ".dashboard-hero",
+            title: "طلبات تغيير حالة العقود",
+            content: "مراجعة طلبات المشرفين لتغيير حالة العقود، والموافقة عليها أو رفضها من مكان واحد.",
+          },
+          {
+            target: ".requests-filter-bar",
+            title: "بحث وتصفية",
+            content: "دوّر برقم العقد أو اسم المشرف، أو فلتر حسب حالة الطلب أو حالة العقد.",
+          },
+          {
+            target: '[data-tour="status-requests-list"]',
+            title: "قائمة الطلبات",
+            content: "كل صف طلب من مشرف — تقدر توافق عليه أو ترفضه من هنا.",
+          },
+        ]
+  );
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;
 
@@ -353,7 +377,7 @@ export const ContractStatusRequestsPage = () => {
         </div>
       </section>
 
-      <section className="dashboard-panel">
+      <section className="dashboard-panel" data-tour="status-requests-list">
         <div className="dashboard-panel-header">
           <h3 className="dashboard-panel-title">قائمة الطلبات</h3>
           <span className="muted">{filteredRequests.length} طلب ظاهر</span>

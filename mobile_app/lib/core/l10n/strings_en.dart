@@ -388,4 +388,39 @@ const Map<String, String> stringsEn = {
   'minutesAgo': '{0} min ago',
   'hoursAgo': '{0} hr ago',
   'daysAgo': '{0} day ago',
+
+  // --- Onboarding Tour ---
+  'tourNext': 'Next',
+  'tourFinish': 'Got it',
+  'tourSkip': 'Skip',
+  'tourReplay': 'Page guide',
+  'tourHomeNavTitle': 'Navigate between sections',
+  'tourHomeNavDesc':
+      'Switch between your overview, all your contracts, and your account from here.',
+  'tourHomeSummaryTitle': 'Your financial summary',
+  'tourHomeSummaryDesc':
+      'See how much you\'ve paid and how much is left across all your contracts at a glance.',
+  'tourHomeQuickAccessTitle': 'Quick stats',
+  'tourHomeQuickAccessDesc':
+      'Your total contracts, remaining amount, amount paid, and completed visits.',
+  'tourHomeContractsTitle': 'Your contracts',
+  'tourHomeContractsDesc':
+      'Tap any contract to see its details, visits, and payments.',
+  'tourHomeHelpTitle': 'Need this again?',
+  'tourHomeHelpDesc': 'Tap here anytime to replay this page\'s guide.',
+  'tourContractHeaderTitle': 'Contract summary',
+  'tourContractHeaderDesc': 'Contract number, status, total value, and start date.',
+  'tourContractTabsTitle': 'Contract details',
+  'tourContractTabsDesc':
+      'Switch between overview, visits, payments, contract terms, and any standalone tasks linked to it.',
+  'tourTaskHeaderTitle': 'Task summary',
+  'tourTaskHeaderDesc': 'The task title, its linked contract, status, and date.',
+  'tourTaskDetailsTitle': 'Task details',
+  'tourTaskDetailsDesc':
+      'All the task info in detail: date, cost, address, and client info.',
+
+  // --- Admin sign-in notice ---
+  'adminNotSupportedTitle': 'This app doesn\'t support admin accounts',
+  'adminNotSupportedMessage':
+      'Admin accounts are managed through the web dashboard only. Please sign in from there instead.',
 };

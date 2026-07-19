@@ -50,38 +50,13 @@ serve(async (req: Request): Promise<Response> => {
     auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
   });
 
-  // Fee amount is admin-configurable at runtime (see get_upayments_fee_amount RPC).
-  // Fall back to the env-var default if the read fails for any reason.
-  let feeAmountSetting = FEE_AMOUNT;
-  try {
-    const { data: feeAmountData } = await supabase.rpc("get_upayments_fee_amount");
-    if (typeof feeAmountData === "number") feeAmountSetting = feeAmountData;
-  } catch (e) {
-    console.warn("[verify-upayment] get_upayments_fee_amount failed, using env default:", e);
-  }
-
-  // Sandbox/production is admin-configurable at runtime (see get_upayments_sandbox_mode RPC).
-  // Fall back to the env-var default if the read fails for any reason.
-  let isSandbox = UPAYMENTS_SANDBOX_ENV;
-  try {
-    const { data: sandboxData } = await supabase.rpc("get_upayments_sandbox_mode");
-    if (typeof sandboxData === "boolean") isSandbox = sandboxData;
-  } catch (e) {
-    console.warn("[verify-upayment] get_upayments_sandbox_mode failed, using env default:", e);
-  }
-
-  const API_TOKEN   = isSandbox ? (UPAYMENTS_API_TOKEN_ENV || "jtest123") : UPAYMENTS_API_TOKEN_ENV;
-  const STATUS_BASE = isSandbox
-    ? "https://sandboxapi.upayments.com/api/v1/get-payment-status"
-    : "https://uapi.upayments.com/api/v1/get-payment-status";
-
   const table = paymentType === "contract" ? "contract_payments" : "standalone_task_payments";
 
   // ── Fetch payment row ────────────────────────────────────────────────────────
   // contract_id only exists on contract_payments — not on standalone_task_payments
   const selectFields = paymentType === "contract"
-    ? "id, amount, gateway_status, payment_gateway_order_id, contract_id"
-    : "id, amount, gateway_status, payment_gateway_order_id, task_id";
+    ? "id, amount, gateway_status, payment_gateway_order_id, contract_id, tenant_id"
+    : "id, amount, gateway_status, payment_gateway_order_id, task_id, tenant_id";
 
   const { data: row } = await supabase
     .from(table)
@@ -94,6 +69,41 @@ serve(async (req: Request): Promise<Response> => {
       status: 404, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
+
+  const tenantId = (row as any).tenant_id as string | null;
+
+  let tenantCreds: { api_token: string | null } | null = null;
+  if (tenantId) {
+    const { data: credsData } = await supabase.rpc("get_tenant_payment_credentials", { p_tenant_id: tenantId });
+    tenantCreds = Array.isArray(credsData) ? (credsData[0] ?? null) : credsData;
+  }
+
+  // Fee amount is admin-configurable at runtime (see get_upayments_fee_amount RPC).
+  // Fall back to the env-var default if the read fails for any reason.
+  let feeAmountSetting = FEE_AMOUNT;
+  try {
+    const { data: feeAmountData } = await supabase.rpc("get_upayments_fee_amount", { p_tenant_id: tenantId });
+    if (typeof feeAmountData === "number") feeAmountSetting = feeAmountData;
+  } catch (e) {
+    console.warn("[verify-upayment] get_upayments_fee_amount failed, using env default:", e);
+  }
+
+  // Sandbox/production is admin-configurable at runtime (see get_upayments_sandbox_mode RPC).
+  // Fall back to the env-var default if the read fails for any reason.
+  let isSandbox = UPAYMENTS_SANDBOX_ENV;
+  try {
+    const { data: sandboxData } = await supabase.rpc("get_upayments_sandbox_mode", { p_tenant_id: tenantId });
+    if (typeof sandboxData === "boolean") isSandbox = sandboxData;
+  } catch (e) {
+    console.warn("[verify-upayment] get_upayments_sandbox_mode failed, using env default:", e);
+  }
+
+  const API_TOKEN   = isSandbox
+    ? (tenantCreds?.api_token || UPAYMENTS_API_TOKEN_ENV || "jtest123")
+    : (tenantCreds?.api_token || UPAYMENTS_API_TOKEN_ENV);
+  const STATUS_BASE = isSandbox
+    ? "https://sandboxapi.upayments.com/api/v1/get-payment-status"
+    : "https://uapi.upayments.com/api/v1/get-payment-status";
 
   // Already confirmed — return early
   if (row.gateway_status === "paid") {
@@ -242,8 +252,9 @@ serve(async (req: Request): Promise<Response> => {
 
       const { data: adminRoles } = await supabase
         .from("user_roles")
-        .select("user_id, roles!inner(name)")
-        .eq("roles.name", "admin");
+        .select("user_id, roles!inner(name), users!inner(tenant_id)")
+        .eq("roles.name", "admin")
+        .eq("users.tenant_id", tenantId as string);
 
       if (adminRoles?.length) {
         const totalPaidLabel = totalPaid.toFixed(3);

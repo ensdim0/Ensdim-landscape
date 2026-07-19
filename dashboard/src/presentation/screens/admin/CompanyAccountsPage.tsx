@@ -3,6 +3,7 @@ import { container } from "@infrastructure/di/container";
 import { CustomSelect } from "@presentation/components/CustomSelect";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { Contract } from "@domain/entities/Contract";
 import { ContractPayment, PaymentMethod } from "@domain/entities/ContractPayment";
 import { StandaloneTask } from "@domain/entities/StandaloneTask";
@@ -203,6 +204,29 @@ export const CompanyAccountsPage = () => {
       setActiveCostSectionId(cst[0].id);
     }
   }, [sections]);
+
+  useTour(
+    "admin-company-accounts",
+    loading || error
+      ? []
+      : [
+          {
+            target: ".ca-seg",
+            title: "حسابات الشركة",
+            content: "تابيات نظرة عامة، الإيرادات، المصروفات، التكاليف، والحسابات — كل تاب بيوضح جانب مختلف من الوضع المالي.",
+          },
+          {
+            target: ".ca-filter-group",
+            title: "الفترة الزمنية والتصدير",
+            content: "اختار الفترة اللي عايز تشوف بياناتها، وصدّر كل الأرقام إلى ملف Excel من هنا.",
+          },
+          {
+            target: ".ca-summary-strip",
+            title: "الملخص المالي",
+            content: "إجمالي الإيرادات والمصروفات والتكاليف وصافي الربح للفترة المحددة.",
+          },
+        ]
+  );
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;

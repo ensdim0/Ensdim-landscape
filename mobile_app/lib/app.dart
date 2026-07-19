@@ -12,7 +12,7 @@ import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/client_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/locale_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
-import 'package:ensdim_landscape/presentation/screens/admin/admin_home_screen.dart';
+import 'package:ensdim_landscape/presentation/screens/admin_not_supported_screen.dart';
 import 'package:ensdim_landscape/presentation/screens/client/client_first_login_setup_screen.dart';
 import 'package:ensdim_landscape/presentation/screens/client_home_screen.dart';
 import 'package:ensdim_landscape/presentation/screens/login_screen.dart';
@@ -244,7 +244,7 @@ class App extends StatelessWidget {
   /// Returns the appropriate home screen based on the user's role.
   Widget _buildHomeScreen(AppUser user) {
     return switch (user.role) {
-      AppRoles.admin => AdminHomeScreen(user: user),
+      AppRoles.admin => const AdminNotSupportedScreen(),
       AppRoles.supervisor => ChangeNotifierProvider(
         create: (_) =>
             SupervisorProvider(ServiceLocator.instance.supervisorRepository),

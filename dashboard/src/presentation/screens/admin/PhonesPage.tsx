@@ -3,6 +3,7 @@ import { container } from "@infrastructure/di/container";
 import { CompanyPhone } from "@domain/entities/CompanyPhone";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import {
   Phone,
   Plus,
@@ -97,6 +98,29 @@ export const PhonesPage = () => {
 
   const filtered = phones.filter(p =>
     p.phoneNumber.includes(search) || (p.phoneName || "").includes(search)
+  );
+
+  useTour(
+    "admin-phones",
+    loading || error
+      ? []
+      : [
+          {
+            target: ".phones-page-header",
+            title: "إدارة هواتف الشركة",
+            content: "من هنا تدوّر على هاتف بالرقم أو الاسم، وتضيف هاتف جديد.",
+          },
+          {
+            target: ".phones-page-stats",
+            title: "نظرة سريعة",
+            content: "إجمالي الهواتف، النشطة منها، وكام هاتف مربوط بخطوط سير.",
+          },
+          {
+            target: ".phones-page-table-card",
+            title: "قائمة الهواتف",
+            content: "من هنا تعدّل بيانات أي هاتف، توقفه، أو تحذفه.",
+          },
+        ]
   );
 
   if (loading) return <LoadingState />;

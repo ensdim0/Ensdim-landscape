@@ -1,3 +1,8 @@
+-- ⚠️ DEPRECATED — DO NOT RUN. Even older/stale than full_rebuild.sql (still
+-- has the "clients" table and "supervisors" table, both removed long ago).
+-- Kept only for historical reference. The real schema = every file in
+-- dashboard/supabase/migrations/ applied in order.
+
 -- Enable necessary extensions
 create extension if not exists "uuid-ossp";
 

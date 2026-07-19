@@ -22,6 +22,7 @@ import { updateContractType } from "@application/use-cases/admin/updateContractT
 import { deleteContractType } from "@application/use-cases/admin/deleteContractType";
 import { getContractTypes } from "@application/use-cases/admin/getContractTypes";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { ErrorState, LoadingState } from "@presentation/components/States";
 
 export const ContractTypesPage: React.FC = () => {
@@ -74,6 +75,29 @@ export const ContractTypesPage: React.FC = () => {
           (type.description || "").toLowerCase().includes(searchQuery.toLowerCase()),
       ),
     [types, searchQuery],
+  );
+
+  useTour(
+    "admin-contract-types",
+    isLoading || error
+      ? []
+      : [
+          {
+            target: ".contract-types-hero",
+            title: "أنواع العقود",
+            content: "من هنا تدير تصنيفات العقود المختلفة، وبنودها، وقوالب الزيارات والمهام الخاصة بكل نوع.",
+          },
+          {
+            target: ".contract-types-toolbar",
+            title: "بحث وإضافة",
+            content: "دوّر على نوع عقد موجود بالاسم أو الوصف، أو أضف نوعًا جديدًا من هنا.",
+          },
+          {
+            target: ".contract-types-types-grid",
+            title: "قائمة الأنواع",
+            content: "كل بطاقة تمثل نوع عقد؛ اضغط عليها لتعديل بنودها أو حذفها.",
+          },
+        ]
   );
 
   if (isLoading) return <LoadingState />;

@@ -7,6 +7,7 @@ import { ExpenseLineItem } from "@domain/entities/ExpenseLineItem";
 import type { PaymentMethod } from "@domain/entities/ContractPayment";
 import { LoadingState, ErrorState } from "@presentation/components/States";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTour } from "@presentation/components/tour/useTour";
 import { CustomSelect } from "@presentation/components/CustomSelect";
 import {
   Car,
@@ -205,6 +206,29 @@ export const FleetPage = () => {
 
     return true;
   });
+
+  useTour(
+    "admin-fleet",
+    loading || error
+      ? []
+      : [
+          {
+            target: ".fleet-page-header",
+            title: "إدارة أسطول السيارات",
+            content: "من هنا تشوف عدد سيارات الأسطول وتضيف سيارة جديدة.",
+          },
+          {
+            target: ".fleet-page-toolbar",
+            title: "بحث وفلترة",
+            content: "دوّر برقم السيارة أو الرخصة، أو فلتر حسب الحالة وصلاحية الرخصة.",
+          },
+          {
+            target: ".fleet-page-content",
+            title: "قائمة السيارات",
+            content: "من هنا تعدّل بيانات أي سيارة أو تربطها بخط سير.",
+          },
+        ]
+  );
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;

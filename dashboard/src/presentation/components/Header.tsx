@@ -2,6 +2,7 @@ import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
+  HelpCircle,
   Key,
   Loader2,
   LogOut,
@@ -17,12 +18,14 @@ import { useAuth } from "@presentation/state/useAuth";
 import { container } from "@infrastructure/di/container";
 import { updateUser } from "@application/use-cases/admin/updateUser";
 import { useToast } from "@presentation/components/ToastProvider";
+import { useTourContext } from "@presentation/components/tour/TourContext";
 import Notifications from "@presentation/components/Notifications";
 
 export const Header = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { notify } = useToast();
+  const { replayCurrentPage } = useTourContext();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -68,6 +71,17 @@ export const Header = ({ onMenuClick }: { onMenuClick?: () => void }) => {
         </div>
 
         <div className="header-actions">
+          <button
+            type="button"
+            className="tour-help-button"
+            data-tour="tour-help-button"
+            onClick={replayCurrentPage}
+            title="شرح الصفحة"
+            aria-label="شرح الصفحة"
+          >
+            <HelpCircle size={18} />
+          </button>
+
           <Notifications />
 
           <div className="profile-dropdown" ref={profileRef}>

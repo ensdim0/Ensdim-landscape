@@ -6,6 +6,7 @@ import { container } from "@infrastructure/di/container";
 import { User } from "@domain/entities/User";
 import { Contract } from "@domain/entities/Contract";
 import { LoadingState, ErrorState } from "@presentation/components/States";
+import { useTour } from "@presentation/components/tour/useTour";
 
 type ClientRow = User & { contractCount: number; activeContractCount: number };
 
@@ -73,6 +74,24 @@ export const ClientsPage = () => {
     });
   }, [clients, searchQuery]);
 
+  useTour(
+    "admin-clients",
+    loading || error
+      ? []
+      : [
+          {
+            target: '[data-tour="clients-search"]',
+            title: "بحث عن عميل",
+            content: "دوّر بالاسم أو البريد الإلكتروني أو رقم الهاتف.",
+          },
+          {
+            target: '[data-tour="clients-list"]',
+            title: "قائمة العملاء",
+            content: "اضغط على أي عميل عشان تفتح ملفه وتشوف عقوده بالتفصيل.",
+          },
+        ]
+  );
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState text={error} />;
 
@@ -98,7 +117,7 @@ export const ClientsPage = () => {
         </button>
       </div>
 
-      <div className="card" style={{ padding: "16px" }}>
+      <div className="card" data-tour="clients-search" style={{ padding: "16px" }}>
         <input
           className="input"
           type="text"
@@ -109,7 +128,7 @@ export const ClientsPage = () => {
         />
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+      <div className="card" data-tour="clients-list" style={{ padding: 0, overflow: "hidden" }}>
         <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--color-border)", background: "var(--bg-subtle)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--text-primary)", fontWeight: 700 }}>
             <Users size={18} />

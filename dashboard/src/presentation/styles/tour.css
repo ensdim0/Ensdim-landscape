@@ -1,0 +1,124 @@
+/* Onboarding guided-tour overlay (spotlight + tooltip). */
+
+.tour-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: auto;
+}
+
+.tour-spotlight {
+  position: fixed;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 9999px rgba(24, 23, 20, 0.65);
+  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+  pointer-events: none;
+}
+
+.tour-tooltip {
+  position: fixed;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+  transition: top 0.25s ease, left 0.25s ease, bottom 0.25s ease;
+}
+
+.tour-tooltip-close {
+  position: absolute;
+  top: var(--space-2);
+  inset-inline-end: var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-full);
+  display: flex;
+}
+
+.tour-tooltip-close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.tour-tooltip-step {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  margin: 0 0 6px;
+}
+
+.tour-tooltip-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+
+.tour-tooltip-content {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+}
+
+.tour-tooltip-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.tour-tooltip-skip {
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+
+.tour-tooltip-skip:hover {
+  color: var(--text-secondary);
+}
+
+.tour-tooltip-next {
+  border: none;
+  background: var(--color-primary);
+  color: var(--text-on-primary);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 8px 20px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.tour-tooltip-next:hover {
+  background: var(--color-primary-hover);
+}
+
+.tour-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tour-help-button:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+@media (max-width: 560px) {
+  .tour-tooltip {
+    width: calc(100vw - 28px) !important;
+    left: 14px !important;
+  }
+}

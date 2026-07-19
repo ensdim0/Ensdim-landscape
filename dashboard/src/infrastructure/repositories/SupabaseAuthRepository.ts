@@ -2,26 +2,32 @@ import { AuthRepository, AuthSession } from "@domain/repositories/AuthRepository
 import { supabase } from "@infrastructure/supabase/client";
 import { User } from "@domain/entities/User";
 
-const mapUser = (user: any, role: string, fullName?: string): User => ({
+const mapUser = (user: any, role: string, fullName?: string, tenantId?: string, tenantName?: string): User => ({
   id: user.id,
   email: user.email ?? "",
   fullName: fullName ?? user.user_metadata?.full_name ?? "",
   role: role as User["role"],
-  createdAt: user.created_at
+  createdAt: user.created_at,
+  tenantId,
+  tenantName
 });
 
 /**
  * Fetch user role from profiles table (the source of truth for roles).
  */
-const fetchUserRole = async (userId: string): Promise<{ role: string; fullName: string }> => {
+const fetchUserRole = async (
+  userId: string
+): Promise<{ role: string; fullName: string; tenantId?: string; tenantName?: string }> => {
   const { data } = await supabase
     .from("users_view")
-    .select("role, fullName")
+    .select("role, fullName, tenantId, tenantName")
     .eq("id", userId)
     .maybeSingle();
   return {
     role: data?.role ?? "client",
-    fullName: data?.fullName ?? ""
+    fullName: data?.fullName ?? "",
+    tenantId: data?.tenantId ?? undefined,
+    tenantName: data?.tenantName ?? undefined
   };
 };
 
@@ -68,11 +74,11 @@ export class SupabaseAuthRepository implements AuthRepository {
       throw error ?? new Error("Invalid login");
     }
 
-    const { role, fullName } = await fetchUserRole(data.user.id);
+    const { role, fullName, tenantId, tenantName } = await fetchUserRole(data.user.id);
 
     return {
       accessToken: data.session.access_token,
-      user: mapUser(data.user, role, fullName)
+      user: mapUser(data.user, role, fullName, tenantId, tenantName)
     };
   }
 
@@ -88,7 +94,7 @@ export class SupabaseAuthRepository implements AuthRepository {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) return null;
 
-    const { role, fullName } = await fetchUserRole(data.user.id);
-    return mapUser(data.user, role, fullName);
+    const { role, fullName, tenantId, tenantName } = await fetchUserRole(data.user.id);
+    return mapUser(data.user, role, fullName, tenantId, tenantName);
   }
 }

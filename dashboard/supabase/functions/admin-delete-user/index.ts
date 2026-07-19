@@ -151,11 +151,39 @@ serve(async (req: Request) => {
       })
     }
 
+    const { data: callerProfile } = await supabaseAdmin
+      .from('users')
+      .select('tenant_id')
+      .eq('id', callerUser.id)
+      .maybeSingle()
+
+    const callerTenantId = callerProfile?.tenant_id
+
+    if (!callerTenantId) {
+      return new Response(JSON.stringify({ error: 'Forbidden', message: 'Caller has no tenant' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      })
+    }
+
     const { id } = await req.json()
     if (!id) {
       return new Response(JSON.stringify({ error: 'Missing user id' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
+      })
+    }
+
+    const { data: targetProfile } = await supabaseAdmin
+      .from('users')
+      .select('tenant_id')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (!targetProfile || targetProfile.tenant_id !== callerTenantId) {
+      return new Response(JSON.stringify({ error: 'Not found', message: 'User not found' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 404,
       })
     }
 

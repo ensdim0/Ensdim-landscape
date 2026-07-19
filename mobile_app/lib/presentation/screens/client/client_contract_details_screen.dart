@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ensdim_landscape/core/services/onboarding_tour_service.dart';
 import 'package:ensdim_landscape/core/theme/app_colors.dart';
 import 'package:ensdim_landscape/core/theme/app_dimensions.dart';
 import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
@@ -15,6 +16,7 @@ import 'package:ensdim_landscape/domain/entities/supervisor_note.dart';
 import 'package:ensdim_landscape/domain/entities/visit.dart';
 import 'package:ensdim_landscape/infrastructure/di/service_locator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/client_provider.dart';
 import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
 import 'package:ensdim_landscape/presentation/widgets/expandable_section.dart';
@@ -219,12 +221,53 @@ class ClientContractDetailsScreen extends StatefulWidget {
 
 class _ClientContractDetailsScreenState
     extends State<ClientContractDetailsScreen> {
+  final _tourHeaderKey = GlobalKey();
+  final _tourTabBarKey = GlobalKey();
+  final _tourHelpKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ClientProvider>().selectContract(widget.contract);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<ClientProvider>().selectContract(widget.contract);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTour());
     });
+  }
+
+  Future<void> _maybeShowTour({bool force = false}) async {
+    if (!mounted) return;
+    final userId = context.read<AuthProvider>().user?.id;
+    if (userId == null) return;
+    final t = AppLocalizations.of(context);
+
+    final steps = [
+      TourStep(
+        key: _tourHeaderKey,
+        title: t.tr('tourContractHeaderTitle'),
+        description: t.tr('tourContractHeaderDesc'),
+      ),
+      TourStep(
+        key: _tourTabBarKey,
+        title: t.tr('tourContractTabsTitle'),
+        description: t.tr('tourContractTabsDesc'),
+      ),
+      TourStep(
+        key: _tourHelpKey,
+        title: t.tr('tourHomeHelpTitle'),
+        description: t.tr('tourHomeHelpDesc'),
+      ),
+    ];
+
+    if (force) {
+      OnboardingTourService.forceShow(context, steps);
+    } else {
+      await OnboardingTourService.showIfUnseen(
+        context,
+        userId: userId,
+        screenId: 'client_contract_details',
+        steps: steps,
+      );
+    }
   }
 
   @override
@@ -250,6 +293,12 @@ class _ClientContractDetailsScreenState
               backButtonBackgroundColor: Colors.transparent,
               actions: [
                 IconButton(
+                  key: _tourHelpKey,
+                  icon: const Icon(Icons.help_outline_rounded),
+                  tooltip: t.tr('tourReplay'),
+                  onPressed: () => _maybeShowTour(force: true),
+                ),
+                IconButton(
                   icon: const Icon(Icons.refresh_rounded),
                   tooltip: t.tr('retry'),
                   onPressed: () =>
@@ -259,9 +308,13 @@ class _ClientContractDetailsScreenState
             ),
             body: Column(
               children: [
-                _ContractHeader(contract: activeContract),
+                KeyedSubtree(
+                  key: _tourHeaderKey,
+                  child: _ContractHeader(contract: activeContract),
+                ),
                 const SizedBox(height: 2),
                 TabBar(
+                  key: _tourTabBarKey,
                   isScrollable: true,
                   tabs: [
                     Tab(text: t.tr('overviewTab')),

@@ -80,11 +80,35 @@ serve(async (req: Request): Promise<Response> => {
     auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
   });
 
+  // ── Resolve which tenant (company) this payment belongs to ─────────────────
+  // Every tenant can run its own UPayments merchant account — look up the
+  // payment's tenant_id and load that tenant's credentials, falling back to
+  // the shared env vars/app_config for tenants that haven't configured their
+  // own gateway yet (this is how Ensdim's existing setup keeps working
+  // unchanged).
+  const paymentTableForLookup = paymentType === "contract" ? "contract_payments" : "standalone_task_payments";
+  const { data: paymentTenantRow } = await supabase
+    .from(paymentTableForLookup)
+    .select("tenant_id")
+    .eq("id", paymentId)
+    .maybeSingle();
+  const tenantId = (paymentTenantRow?.tenant_id as string | null) ?? null;
+
+  let tenantCreds: {
+    api_token: string | null; nwl_token: string | null; gateway_src: string | null;
+    webhook_secret: string | null; return_url: string | null; cancel_url: string | null;
+  } | null = null;
+
+  if (tenantId) {
+    const { data: credsData } = await supabase.rpc("get_tenant_payment_credentials", { p_tenant_id: tenantId });
+    tenantCreds = Array.isArray(credsData) ? (credsData[0] ?? null) : credsData;
+  }
+
   // Fee amount is admin-configurable at runtime (see get_upayments_fee_amount RPC).
   // Fall back to the env-var default if the read fails for any reason.
   let gatewayFeeAmountSetting = UPAYMENTS_FEE_AMOUNT;
   try {
-    const { data: feeAmountData } = await supabase.rpc("get_upayments_fee_amount");
+    const { data: feeAmountData } = await supabase.rpc("get_upayments_fee_amount", { p_tenant_id: tenantId });
     if (typeof feeAmountData === "number") gatewayFeeAmountSetting = feeAmountData;
   } catch (e) {
     console.warn("[create-upayment-charge] get_upayments_fee_amount failed, using env default:", e);
@@ -94,20 +118,35 @@ serve(async (req: Request): Promise<Response> => {
   // Fall back to the env-var default if the read fails for any reason.
   let isSandbox = UPAYMENTS_SANDBOX_ENV;
   try {
-    const { data: sandboxData } = await supabase.rpc("get_upayments_sandbox_mode");
+    const { data: sandboxData } = await supabase.rpc("get_upayments_sandbox_mode", { p_tenant_id: tenantId });
     if (typeof sandboxData === "boolean") isSandbox = sandboxData;
   } catch (e) {
     console.warn("[create-upayment-charge] get_upayments_sandbox_mode failed, using env default:", e);
   }
 
+  const tenantApiToken = tenantCreds?.api_token || null;
+  const tenantNwlToken = tenantCreds?.nwl_token || null;
+
   // White-label token (requires paymentGateway.src per request)
-  const UPAYMENTS_WL_TOKEN  = isSandbox ? (UPAYMENTS_API_TOKEN_ENV || "jtest123") : UPAYMENTS_API_TOKEN_ENV;
+  const UPAYMENTS_WL_TOKEN  = isSandbox
+    ? (tenantApiToken || UPAYMENTS_API_TOKEN_ENV || "jtest123")
+    : (tenantApiToken || UPAYMENTS_API_TOKEN_ENV);
   // Non-white-label token (hosted page shows all methods — no paymentGateway needed)
-  const UPAYMENTS_NWL_TOKEN = isSandbox ? "jtest123" : (UPAYMENTS_NWL_TOKEN_ENV || UPAYMENTS_WL_TOKEN);
+  const UPAYMENTS_NWL_TOKEN = isSandbox
+    ? "jtest123"
+    : (tenantNwlToken || UPAYMENTS_NWL_TOKEN_ENV || UPAYMENTS_WL_TOKEN);
   const UPAYMENTS_API_URL   = isSandbox
     ? "https://sandboxapi.upayments.com/api/v1/charge"
     : "https://uapi.upayments.com/api/v1/charge";
-  const resolvedGatewaySrc  = gatewaySrc ?? (isSandbox ? "cc" : UPAYMENTS_GATEWAY_SRC_ENV);
+  const resolvedGatewaySrc  = gatewaySrc ?? (isSandbox ? "cc" : (tenantCreds?.gateway_src || UPAYMENTS_GATEWAY_SRC_ENV));
+  const resolvedReturnUrl   = tenantCreds?.return_url || UPAYMENTS_RETURN_URL;
+  const resolvedCancelUrl   = tenantCreds?.cancel_url || UPAYMENTS_CANCEL_URL;
+  // Tag the webhook URL with the tenant id so upayment-webhook knows which
+  // tenant's secret to verify the HMAC signature with, before it can trust
+  // anything else in the incoming request.
+  const resolvedWebhookUrl = tenantId
+    ? `${UPAYMENTS_WEBHOOK_URL}${UPAYMENTS_WEBHOOK_URL.includes("?") ? "&" : "?"}tenant_id=${encodeURIComponent(tenantId)}`
+    : UPAYMENTS_WEBHOOK_URL;
 
   // ── Fetch client info ───────────────────────────────────────────────────────
   const { data: userRow } = await supabase
@@ -157,9 +196,9 @@ serve(async (req: Request): Promise<Response> => {
       email:    customerEmail || "noreply@ensdim.local",
       mobile:   customerMobile || "",
     },
-    returnUrl:       UPAYMENTS_RETURN_URL,
-    cancelUrl:       UPAYMENTS_CANCEL_URL,
-    notificationUrl: UPAYMENTS_WEBHOOK_URL,
+    returnUrl:       resolvedReturnUrl,
+    cancelUrl:       resolvedCancelUrl,
+    notificationUrl: resolvedWebhookUrl,
     reference: {
       id: shortRef,
     },

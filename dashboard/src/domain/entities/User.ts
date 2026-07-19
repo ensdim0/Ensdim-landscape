@@ -10,4 +10,6 @@ export type User = {
   assignedLineId?: string;
   assignmentStartDate?: string;
   assignmentEndDate?: string;
+  tenantId?: string;
+  tenantName?: string;
 };

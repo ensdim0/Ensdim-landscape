@@ -73,7 +73,7 @@ export const Sidebar = ({
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }) => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `nav-item ${isActive ? "active" : ""}`;
@@ -83,6 +83,9 @@ export const Sidebar = ({
       <div className="sidebar-header">
         <div className="sidebar-brand">
           <img src={logoImage} alt="Ensdim Landscape System" />
+          {!collapsed && user?.tenantName && (
+            <span className="sidebar-tenant-name">{user.tenantName}</span>
+          )}
         </div>
       </div>
 
@@ -97,7 +100,7 @@ export const Sidebar = ({
         </button>
       )}
 
-      <nav className="sidebar-content">
+      <nav className="sidebar-content" data-tour="sidebar-nav">
         {sections.map((section, i) => (
           <div key={i} className="nav-group">
             {section.links.map((link) => {

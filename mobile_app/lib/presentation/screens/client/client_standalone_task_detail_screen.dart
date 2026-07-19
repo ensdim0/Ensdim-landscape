@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:ensdim_landscape/core/l10n/app_localizations.dart';
+import 'package:ensdim_landscape/core/services/onboarding_tour_service.dart';
 import 'package:ensdim_landscape/core/theme/app_colors.dart';
 import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
 import 'package:ensdim_landscape/presentation/widgets/custom_app_bar.dart';
 import 'package:ensdim_landscape/core/utils/date_formatter.dart' as date_fmt;
 
-class ClientStandaloneTaskDetailScreen extends StatelessWidget {
+class ClientStandaloneTaskDetailScreen extends StatefulWidget {
   final StandaloneTask task;
   final String contractCode;
 
@@ -14,6 +17,62 @@ class ClientStandaloneTaskDetailScreen extends StatelessWidget {
     required this.task,
     required this.contractCode,
   });
+
+  @override
+  State<ClientStandaloneTaskDetailScreen> createState() =>
+      _ClientStandaloneTaskDetailScreenState();
+}
+
+class _ClientStandaloneTaskDetailScreenState
+    extends State<ClientStandaloneTaskDetailScreen> {
+  final _tourHeaderKey = GlobalKey();
+  final _tourDetailsKey = GlobalKey();
+  final _tourHelpKey = GlobalKey();
+
+  StandaloneTask get task => widget.task;
+  String get contractCode => widget.contractCode;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTour());
+  }
+
+  Future<void> _maybeShowTour({bool force = false}) async {
+    if (!mounted) return;
+    final userId = context.read<AuthProvider>().user?.id;
+    if (userId == null) return;
+    final t = AppLocalizations.of(context);
+
+    final steps = [
+      TourStep(
+        key: _tourHeaderKey,
+        title: t.tr('tourTaskHeaderTitle'),
+        description: t.tr('tourTaskHeaderDesc'),
+      ),
+      TourStep(
+        key: _tourDetailsKey,
+        title: t.tr('tourTaskDetailsTitle'),
+        description: t.tr('tourTaskDetailsDesc'),
+      ),
+      TourStep(
+        key: _tourHelpKey,
+        title: t.tr('tourHomeHelpTitle'),
+        description: t.tr('tourHomeHelpDesc'),
+      ),
+    ];
+
+    if (force) {
+      OnboardingTourService.forceShow(context, steps);
+    } else {
+      await OnboardingTourService.showIfUnseen(
+        context,
+        userId: userId,
+        screenId: 'client_standalone_task_detail',
+        steps: steps,
+      );
+    }
+  }
 
   Color _getStatusColor() {
     switch (task.status) {
@@ -56,6 +115,14 @@ class ClientStandaloneTaskDetailScreen extends StatelessWidget {
       appBar: CustomAppBar(
         title: t.tr('taskDetails'),
         backButtonBackgroundColor: Colors.transparent,
+        actions: [
+          IconButton(
+            key: _tourHelpKey,
+            icon: const Icon(Icons.help_outline_rounded),
+            tooltip: t.tr('tourReplay'),
+            onPressed: () => _maybeShowTour(force: true),
+          ),
+        ],
       ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
@@ -64,6 +131,7 @@ class ClientStandaloneTaskDetailScreen extends StatelessWidget {
         ),
         children: [
           Card(
+            key: _tourHeaderKey,
             elevation: 0,
             color: theme.colorScheme.surfaceContainer,
             shape: RoundedRectangleBorder(
@@ -155,6 +223,7 @@ class ClientStandaloneTaskDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _SectionCard(
+            key: _tourDetailsKey,
             title: t.tr('taskDetails'),
             children: [
               _DetailRow(
@@ -299,7 +368,7 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const _SectionCard({required this.title, required this.children});
+  const _SectionCard({super.key, required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {

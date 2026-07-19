@@ -127,33 +127,67 @@ export const Notifications = () => {
     let channel: any = null;
 
     void (async () => {
-      // Resolve the current user first — both the initial REST fetch and the
-      // realtime subscription need to filter by it (see belongsToCurrentUser).
+      // Resolve the current user + tenant first — both the initial REST
+      // fetch and the realtime subscription need to filter by them.
       const { data: userData } = await supabase.auth.getUser();
       const currentUserId = userData?.user?.id ?? null;
       if (!mounted) return;
       currentUserIdRef.current = currentUserId;
 
-      const belongsToCurrentUser = (row: any) => !row || row.user_id === null || row.user_id === currentUserId;
+      const { data: myTenantId } = await supabase.rpc("current_tenant_id");
+      if (!mounted) return;
 
+      const handleInsert = (payload: any) => {
+        if (!mounted) return;
+        const newRow = payload.new;
+        setNotifications((current) => {
+          if (!newRow) return current;
+          if (current.some((item) => item.id === newRow.id)) return current;
+          return [newRow, ...current].slice(0, 8);
+        });
+      };
+
+      const handleUpdate = (payload: any) => {
+        if (!mounted) return;
+        const updated = payload.new;
+        if (!updated) return;
+        setNotifications((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      };
+
+      // Two separate server-side filters instead of one unfiltered
+      // subscription + client-side check — Postgres only broadcasts rows
+      // matching each filter over the wire, so another tenant's (or another
+      // user's) notification content never reaches this browser at all.
       channel = supabase
         .channel("admin-header-notifications")
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload: any) => {
-          if (!mounted) return;
-          const newRow = payload.new;
-          if (!belongsToCurrentUser(newRow)) return;
-          setNotifications((current) => {
-            if (!newRow) return current;
-            if (current.some((item) => item.id === newRow.id)) return current;
-            return [newRow, ...current].slice(0, 8);
-          });
-        })
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications" }, (payload: any) => {
-          if (!mounted) return;
-          const updated = payload.new;
-          if (!updated || !belongsToCurrentUser(updated)) return;
-          setNotifications((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-        });
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${currentUserId}` },
+          handleInsert
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${currentUserId}` },
+          handleUpdate
+        );
+
+      if (myTenantId) {
+        channel = channel
+          .on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "notifications", filter: `tenant_id=eq.${myTenantId}` },
+            (payload: any) => {
+              if (payload.new?.user_id === null) handleInsert(payload);
+            }
+          )
+          .on(
+            "postgres_changes",
+            { event: "UPDATE", schema: "public", table: "notifications", filter: `tenant_id=eq.${myTenantId}` },
+            (payload: any) => {
+              if (payload.new?.user_id === null) handleUpdate(payload);
+            }
+          );
+      }
 
       channel.subscribe();
 
