@@ -160,7 +160,7 @@ class _BootstrapSplashScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF30461F), Color(0xFF3E6530), Color(0xFF2E5C1F)],
+            colors: [Color(0xFF2F2160), Color(0xFF5C4790), Color(0xFF1A1338)],
           ),
         ),
         child: Stack(
@@ -173,7 +173,7 @@ class _BootstrapSplashScreen extends StatelessWidget {
                 height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFEA8E20).withValues(alpha: 0.1),
+                  color: const Color(0xFFA190C9).withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -253,7 +253,7 @@ class _BootstrapSplashScreen extends StatelessWidget {
                           CircularProgressIndicator(
                             strokeWidth: 3,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFFEA8E20),
+                              Color(0xFFA190C9),
                             ),
                           ),
                         ],

@@ -21,9 +21,9 @@ class SplashScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF30461F), // Deep Green
-              const Color(0xFF3e6530), // Medium Green
-              const Color(0xFF2e5c1f), // Darker Green
+              const Color(0xFF2F2160), // Deep Purple
+              const Color(0xFF5C4790), // Medium Purple
+              const Color(0xFF1A1338), // Darkest Purple
             ],
           ),
         ),
@@ -38,7 +38,7 @@ class SplashScreen extends StatelessWidget {
                 height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFEA8E20).withOpacity(0.1),
+                  color: const Color(0xFFA190C9).withOpacity(0.16),
                 ),
               ),
             ),
@@ -83,7 +83,7 @@ class SplashScreen extends StatelessWidget {
                             return Icon(
                               Icons.park_rounded,
                               size: 80,
-                              color: const Color(0xFF30461F),
+                              color: const Color(0xFF2F2160),
                             );
                           },
                         ),
@@ -127,7 +127,7 @@ class SplashScreen extends StatelessWidget {
                           CircularProgressIndicator(
                             strokeWidth: 3,
                             valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFFEA8E20),
+                              Color(0xFFA190C9),
                             ),
                           ),
                         ],

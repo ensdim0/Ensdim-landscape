@@ -937,7 +937,7 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: success ? const Color(0xFF30461F) : Colors.red,
+          backgroundColor: success ? const Color(0xFF2F2160) : Colors.red,
         ),
       );
     }
@@ -981,7 +981,7 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
             content: Text(
               success ? t.tr('visitUpdated') : t.tr('errorUpdatingVisit'),
             ),
-            backgroundColor: success ? const Color(0xFF30461F) : Colors.red,
+            backgroundColor: success ? const Color(0xFF2F2160) : Colors.red,
           ),
         );
       }

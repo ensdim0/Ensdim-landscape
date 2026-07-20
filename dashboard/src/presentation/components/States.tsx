@@ -15,7 +15,7 @@ export const EmptyState = ({ text = "لا توجد بيانات" }: { text?: str
 );
 
 export const ErrorState = ({ text = "حدث خطأ" }: { text?: string }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', color: '#c0392b' }}>
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', color: '#C23030' }}>
     <AlertCircle size={32} style={{ marginBottom: '12px' }} />
     <span style={{ fontSize: '0.9rem' }}>{text}</span>
   </div>

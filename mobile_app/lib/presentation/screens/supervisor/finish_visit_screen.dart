@@ -325,7 +325,7 @@ class _FinishVisitScreenState extends State<FinishVisitScreen> {
               Icon(
                 Icons.location_on_rounded,
                 color: _gpsLat != null
-                    ? const Color(0xFF30461F)
+                    ? const Color(0xFF2F2160)
                     : theme.colorScheme.primary,
               ),
               const SizedBox(width: 8),
@@ -337,7 +337,7 @@ class _FinishVisitScreenState extends State<FinishVisitScreen> {
                   style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: _gpsLat != null
-                        ? const Color(0xFF30461F)
+                        ? const Color(0xFF2F2160)
                         : theme.colorScheme.onSurface,
                   ),
                 ),
@@ -636,7 +636,7 @@ class _FinishVisitScreenState extends State<FinishVisitScreen> {
       scaffold.showSnackBar(
         SnackBar(
           content: Text(t.tr('visitCompletedMessage')),
-          backgroundColor: const Color(0xFF30461F),
+          backgroundColor: const Color(0xFF2F2160),
         ),
       );
       // Pop back to visit detail (or beyond)

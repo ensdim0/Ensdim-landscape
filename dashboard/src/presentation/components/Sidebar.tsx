@@ -19,6 +19,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "@presentation/state/useAuth";
 import logoImage from "../../../assets/logo10.png";
+import logoMarkImage from "../../../assets/logo-mark.png";
 
 type NavSection = {
   links: Array<{
@@ -82,7 +83,11 @@ export const Sidebar = ({
     <>
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <img src={logoImage} alt="Ensdim Landscape System" />
+          <img
+            src={collapsed ? logoMarkImage : logoImage}
+            alt="Ensdim Landscape System"
+            className={collapsed ? "sidebar-logo-mark" : "sidebar-logo-full"}
+          />
           {!collapsed && user?.tenantName && (
             <span className="sidebar-tenant-name">{user.tenantName}</span>
           )}

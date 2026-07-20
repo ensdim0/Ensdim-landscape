@@ -307,7 +307,7 @@ class _TaskExecutionScreenState extends State<TaskExecutionScreen> {
                 Icon(
                   Icons.location_on,
                   color: _gpsRecorded
-                      ? const Color(0xFF30461F)
+                      ? const Color(0xFF2F2160)
                       : theme.colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
@@ -514,7 +514,7 @@ class _TaskExecutionScreenState extends State<TaskExecutionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(completedMessage),
-          backgroundColor: const Color(0xFF30461F),
+          backgroundColor: const Color(0xFF2F2160),
         ),
       );
       Navigator.of(context).pop();

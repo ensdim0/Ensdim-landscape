@@ -108,6 +108,21 @@ const Badge = ({ children, variant = 'default', className = '', style = {} }: an
     );
 };
 
+const generateNextContractCode = (contracts: Contract[]): string => {
+    const PREFIX = 'NO-';
+    const START = 1;
+    let maxSeq = START - 1;
+    for (const c of contracts) {
+        const match = c.code?.match(/^NO-(\d{4,})$/);
+        const seqStr = match?.[1];
+        if (seqStr) {
+            const seq = parseInt(seqStr, 10);
+            if (seq > maxSeq) maxSeq = seq;
+        }
+    }
+    return `${PREFIX}${String(maxSeq + 1).padStart(4, '0')}`;
+};
+
 type DraftContractPayment = {
     id: string;
     amount: number;
@@ -269,10 +284,11 @@ export const ContractsPage: React.FC = () => {
             visits: (t.visits || []).filter((v: any) => !v.isExcluded)
         }));
 
-    const result = await createContract(container.adminRepository, {
+    let code = contractData.code;
+    let result = await createContract(container.adminRepository, {
             userId: contractData.clientId,
             zoneId: contractData.zoneId as string,
-            code: contractData.code,
+            code,
             contractTypeId: contractData.contractTypeId || undefined,
             durationMonths: Number(contractData.durationMonths) || undefined,
             addressDetails: contractData.addressDetails || undefined,
@@ -293,6 +309,42 @@ export const ContractsPage: React.FC = () => {
             terms: cleanedTerms,
             firstVisitDate: contractData.firstVisitDate || undefined,
       });
+
+      // رقم العقد يُولَّد من آخر بيانات محمّلة محليًا، فقد يتعارض مع عقد أُنشئ
+      // في جلسة أخرى بنفس اللحظة. عند التعارض نُعيد جلب أحدث العقود ونولّد رقمًا جديدًا.
+      let retriesLeft = 2;
+      while (!result.ok && result.error?.code === "CONFLICT" && retriesLeft > 0) {
+          retriesLeft--;
+          const freshContracts = await container.adminRepository.listContracts().catch(() => null);
+          if (!freshContracts) break;
+          const nextCode = generateNextContractCode(freshContracts);
+          if (nextCode === code) break;
+          code = nextCode;
+          result = await createContract(container.adminRepository, {
+              userId: contractData.clientId,
+              zoneId: contractData.zoneId as string,
+              code,
+              contractTypeId: contractData.contractTypeId || undefined,
+              durationMonths: Number(contractData.durationMonths) || undefined,
+              addressDetails: contractData.addressDetails || undefined,
+              notes: contractData.notes || undefined,
+              palmInfo: contractData.palmInfo || undefined,
+              blockNumber: contractData.blockNumber || undefined,
+              street: contractData.street || undefined,
+              avenue: contractData.avenue || undefined,
+              house: contractData.house || undefined,
+              kuwaitFinderUrl: contractData.kuwaitFinderUrl || undefined,
+              contractUserName: contractData.contractUserName || "",
+              contractUserPhone: contractData.contractUserPhone || "",
+              contractUserPasswordHash: contractData.contractUserPasswordHash || "",
+              startDate: contractData.startDate,
+              endDate: contractData.endDate,
+              totalValue: Number(contractData.totalValue) || 0,
+              status: contractData.status,
+              terms: cleanedTerms,
+              firstVisitDate: contractData.firstVisitDate || undefined,
+          });
+      }
 
       if (result.ok) {
           const contract = result.data;
@@ -1192,21 +1244,7 @@ const ContractFormModal = ({ title, initialData, clients, lines, types, contract
         { id: 5, title: 'المراجعة والحفظ', icon: CheckCircle, desc: 'تأكيد البيانات' }
     ];
 
-    const generateNextCode = () => {
-        const PREFIX = 'NO-';
-        const START = 1;
-        if (!contracts || contracts.length === 0) return `${PREFIX}${String(START).padStart(4, '0')}`;
-        
-        let maxSeq = START - 1;
-        for (const c of contracts) {
-            const match = c.code?.match(/^NO-(\d{4,})$/);
-            if (match) {
-                const seq = parseInt(match[1], 10);
-                if (seq > maxSeq) maxSeq = seq;
-            }
-        }
-        return `${PREFIX}${String(maxSeq + 1).padStart(4, '0')}`;
-    };
+    const generateNextCode = () => generateNextContractCode(contracts || []);
 
     const [currentStep, setCurrentStep] = useState(1);
     const [stepError, setStepError] = useState<string | null>(null);

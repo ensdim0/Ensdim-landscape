@@ -1,3 +1,15 @@
+:root {
+  --ink: #101318;
+  --paper: #fafafa;
+  --purple: #2f2160;
+  --purple-hover: #251a4c;
+  --purple-light: #f2f0f8;
+  --red: #c23030;
+  --red-hover: #9c2727;
+  --line: #e1dfe6;
+  --muted: #706d7a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -5,8 +17,8 @@
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
-  background: #f5f6f8;
-  color: #1a1a1a;
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .center {
@@ -32,7 +44,7 @@ body {
 
 .card input {
   padding: 10px 12px;
-  border: 1px solid #d5d8dd;
+  border: 1px solid var(--line);
   border-radius: 6px;
   font-size: 14px;
 }
@@ -41,10 +53,14 @@ button {
   padding: 8px 14px;
   border-radius: 6px;
   border: none;
-  background: #2b6cb0;
+  background: var(--purple);
   color: #fff;
   cursor: pointer;
   font-size: 14px;
+}
+
+button:hover {
+  background: var(--purple-hover);
 }
 
 button:disabled {
@@ -53,7 +69,7 @@ button:disabled {
 }
 
 .error {
-  color: #c0392b;
+  color: var(--red);
   font-size: 13px;
 }
 
@@ -113,8 +129,8 @@ button:disabled {
 }
 
 .badge-suspended {
-  background: #f8d7da;
-  color: #721c24;
+  background: #f5cece;
+  color: var(--red-hover);
 }
 
 .badge-trial {
@@ -146,10 +162,15 @@ button:disabled {
 
 .link-button {
   background: none;
-  color: #2b6cb0;
+  color: var(--purple);
   padding: 0 0 0 8px;
   font-size: 13px;
   text-decoration: underline;
+}
+
+.link-button:hover {
+  background: none;
+  color: var(--purple-hover);
 }
 
 .rename-row {
@@ -193,7 +214,11 @@ button:disabled {
 }
 
 .danger-button {
-  background: #c0392b;
+  background: var(--red);
+}
+
+.danger-button:hover {
+  background: var(--red-hover);
 }
 
 .danger-confirm {

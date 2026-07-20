@@ -16,7 +16,7 @@ import 'package:ensdim_landscape/domain/entities/contract.dart';
 // ── Palette ───────────────────────────────────────────────────────────────────
 const _kGreen      = AppColors.primary;
 const _kGreenDark  = Color(0xFF1F5C3C);
-const _kOrange     = Color(0xFFE8A020);
+const _kAccent     = Color(0xFF5C4790);
 const _kCream      = Color(0xFFF7F3EE);
 const _kBorder     = Color(0xFFDDD8D0);
 const _kGreenLight = Color(0xFFEAF4EE);
@@ -436,7 +436,7 @@ class _InvoiceCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           // Orange divider line
-          Container(height: 2, color: _kOrange, margin: const EdgeInsets.symmetric(horizontal: 20)),
+          Container(height: 2, color: _kAccent, margin: const EdgeInsets.symmetric(horizontal: 20)),
           const SizedBox(height: 12),
           // Title
           Container(
@@ -543,7 +543,7 @@ class _InvoiceCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.eco_rounded, color: _kOrange, size: 16),
+              const Icon(Icons.eco_rounded, color: _kAccent, size: 16),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text('تفاصيل الأصناف',
@@ -634,10 +634,10 @@ class _InvoiceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.payment_rounded, size: 14, color: _kOrange),
+            const Icon(Icons.payment_rounded, size: 14, color: _kAccent),
             const SizedBox(width: 6),
             const Text('تفاصيل الدفع',
-                style: TextStyle(color: _kOrange, fontWeight: FontWeight.w700, fontSize: 11)),
+                style: TextStyle(color: _kAccent, fontWeight: FontWeight.w700, fontSize: 11)),
           ]),
           const SizedBox(height: 8),
           _DetailRow(label: 'تاريخ ووقت الدفع', value: paymentDate),
@@ -730,10 +730,10 @@ class _InvoiceCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          const Icon(Icons.event_available_rounded, size: 14, color: _kOrange),
+          const Icon(Icons.event_available_rounded, size: 14, color: _kAccent),
           const SizedBox(width: 6),
           const Text('إحصائيات الزيارات',
-              style: TextStyle(color: _kOrange, fontWeight: FontWeight.w700, fontSize: 11)),
+              style: TextStyle(color: _kAccent, fontWeight: FontWeight.w700, fontSize: 11)),
         ]),
         const SizedBox(height: 8),
         Row(
@@ -899,7 +899,7 @@ class _HeaderInfoBox extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: _kOrange),
+          Icon(icon, size: 16, color: _kAccent),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -1034,7 +1034,7 @@ class _ItemRow extends StatelessWidget {
             width: 65,
             child: Text(quantity,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF4A6A4A), fontSize: 12, fontWeight: FontWeight.w500)),
+                style: const TextStyle(color: Color(0xFF524F5A), fontSize: 12, fontWeight: FontWeight.w500)),
           ),
           SizedBox(
             width: 80,
@@ -1071,7 +1071,7 @@ class _TotalBar extends StatelessWidget {
         children: [
           // Orange left accent
           Container(width: 4, height: 44, decoration: BoxDecoration(
-            color: _kOrange,
+            color: _kAccent,
             borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
           )),
           // Label (dark green bg)
@@ -1169,7 +1169,7 @@ class _PalmStatRow extends StatelessWidget {
             children: [
               Container(width: 6, height: 6, margin: const EdgeInsets.only(left: 8),
                   decoration: const BoxDecoration(color: _kGreen, shape: BoxShape.circle)),
-              Text(label, style: const TextStyle(color: Color(0xFF4A6A4A), fontSize: 12)),
+              Text(label, style: const TextStyle(color: Color(0xFF524F5A), fontSize: 12)),
             ],
           ),
           Container(

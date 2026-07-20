@@ -18,6 +18,12 @@ export const createContract = async (
     const contract = await repo.createContract(payload);
     return { ok: true, data: contract };
   } catch (error: any) {
+    if (error?.code === "23505" && String(error.message || "").includes("code")) {
+      return {
+        ok: false,
+        error: new AppError("رقم العقد مستخدم بالفعل، يرجى المحاولة مرة أخرى", "CONFLICT", { field: "code" }),
+      };
+    }
     return { ok: false, error: new AppError(error.message || "تعذر إنشاء العقد", "INTERNAL") };
   }
 };

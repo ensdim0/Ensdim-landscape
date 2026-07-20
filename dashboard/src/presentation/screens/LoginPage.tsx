@@ -71,9 +71,9 @@ export const LoginPage = () => {
           <div className="auth-side-overlay" />
           <div className="auth-side-content">
             <div className="auth-logo-wrap">
-              <img src={logoImage} alt="شعار بستان اماري" className="auth-logo" />
+              <img src={logoImage} alt="شعار Ensdim" className="auth-logo" />
             </div>
-            <h1 className="auth-side-title">بستان اماري</h1>
+            <h1 className="auth-side-title">Ensdim</h1>
             <p className="auth-side-subtitle">إدارة شاملة للعمليات والعقود والفرق الميدانية</p>
             <p className="auth-side-note">لوحة بسيطة وسريعة لمتابعة الأداء اليومي واتخاذ قرارات أوضح.</p>
           </div>
@@ -138,7 +138,7 @@ export const LoginPage = () => {
             </button>
           </form>
 
-          <div className="auth-footer">© 2026 بستان اماري - جميع الحقوق محفوظة</div>
+          <div className="auth-footer">© 2026 Ensdim - جميع الحقوق محفوظة</div>
         </section>
       </div>
     </div>
