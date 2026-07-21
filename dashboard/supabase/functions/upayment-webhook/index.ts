@@ -63,15 +63,21 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   // ── Verify HMAC-SHA256 signature ───────────────────────────────────────────
-  // Sandbox: skip signature check (test environment doesn't send valid HMAC)
+  // Sandbox: skip signature check (test environment doesn't send valid HMAC).
+  // Production: fail CLOSED — a missing secret or missing/invalid signature
+  // must reject the request, not silently skip verification. (Previously this
+  // only checked the signature when both were present, so simply omitting the
+  // signature header bypassed verification entirely, even in production.)
   if (!isSandbox) {
     const signature = req.headers.get("x-signature") ?? req.headers.get("x-upayments-signature") ?? "";
-    if (webhookSecret && signature) {
-      const isValid = await verifyHmac(rawBody, signature, webhookSecret);
-      if (!isValid) {
-        console.error("[upayment-webhook] invalid HMAC signature");
-        return new Response("Unauthorized", { status: 401 });
-      }
+    if (!webhookSecret || !signature) {
+      console.error("[upayment-webhook] missing webhook secret or signature — rejecting");
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const isValid = await verifyHmac(rawBody, signature, webhookSecret);
+    if (!isValid) {
+      console.error("[upayment-webhook] invalid HMAC signature");
+      return new Response("Unauthorized", { status: 401 });
     }
   } else {
     console.log("[upayment-webhook] SANDBOX mode — skipping HMAC verification");

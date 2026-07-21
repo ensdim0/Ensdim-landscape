@@ -19,6 +19,7 @@ import {
   Wallet, Plus, X, Save, Pencil, Trash2, Loader2, TrendingUp, TrendingDown, Scale,
   FileText, HardHat, Car, AlertCircle, DollarSign, Calendar, Banknote,
   Smartphone, Zap, MoreHorizontal, Settings, Tag, ChevronDown, ChevronUp, Layers, Download,
+  KeyRound, Link2,
 } from "lucide-react";
 import { exportCompanyAccountsToExcel } from "@presentation/utils/exportCompanyAccounts";
 import "@presentation/styles/admin/company-accounts.css";
@@ -113,6 +114,9 @@ export const CompanyAccountsPage = () => {
   const [feeAmount, setFeeAmount] = useState(0.13);
   const [isFeeAmountModalOpen, setIsFeeAmountModalOpen] = useState(false);
   const [isSandboxMode, setIsSandboxMode] = useState(true);
+  const [isSandboxModalOpen, setIsSandboxModalOpen] = useState(false);
+  const [hasPaymentCredentials, setHasPaymentCredentials] = useState(false);
+  const [isCredentialsModalOpen, setIsCredentialsModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -141,7 +145,7 @@ export const CompanyAccountsPage = () => {
         sectionsData, lineItemsData,
         workersData, vehiclesData, vehicleExpensesData,
         feeAmountData, overdueContractPaymentsData, overdueTaskPaymentsData,
-        sandboxModeData,
+        sandboxModeData, hasCredentialsData,
       ] = await Promise.all([
         repo.listContracts(),
         repo.listClientUsers(),
@@ -158,6 +162,7 @@ export const CompanyAccountsPage = () => {
         repo.listOverdueContractPayments(),
         repo.listOverdueStandaloneTaskPayments(),
         repo.getUpaymentsSandboxMode(),
+        repo.hasTenantPaymentCredentials(),
       ]);
       setContracts(contractsData);
       setClientUsers(clientUsersData);
@@ -174,6 +179,7 @@ export const CompanyAccountsPage = () => {
       setVehicleExpenses(vehicleExpensesData);
       setFeeAmount(feeAmountData);
       setIsSandboxMode(sandboxModeData);
+      setHasPaymentCredentials(hasCredentialsData);
       if (!activeSectionId) {
         const first = sectionsData.find(s => s.kind === 'expense');
         if (first) setActiveSectionId(first.id);
@@ -750,6 +756,23 @@ export const CompanyAccountsPage = () => {
                 {isSandboxMode ? "تجريبي (Sandbox)" : "فعلي (Production)"}
               </span>
             </div>
+            <button className="button secondary" onClick={() => setIsSandboxModalOpen(true)}>
+              <Settings size={16} />
+              تعديل
+            </button>
+          </div>
+
+          <div className="card ca-fee-card">
+            <div className="ca-fee-card-info">
+              <span className="ca-fee-card-label">بيانات بوابة الدفع الخاصة بالشركة</span>
+              <span className="ca-fee-card-value" style={{ color: hasPaymentCredentials ? "#16a34a" : "#d97706" }}>
+                {hasPaymentCredentials ? "مُعدة ✓ (بيانات الشركة الخاصة)" : "غير مُعدة — يُستخدم النظام الافتراضي المشترك"}
+              </span>
+            </div>
+            <button className="button secondary" onClick={() => setIsCredentialsModalOpen(true)}>
+              <Settings size={16} />
+              تعديل
+            </button>
           </div>
 
           <div className="card ca-balances-card">
@@ -787,9 +810,22 @@ export const CompanyAccountsPage = () => {
         />
       )}
 
-      {/* SandboxModeModal is kept defined below (unused for now) — the toggle button was
-          removed after the gateway was confirmed to be in production; re-wire it here if
-          switching modes is needed again later. */}
+      {isSandboxModalOpen && (
+        <SandboxModeModal
+          currentSandbox={isSandboxMode}
+          onClose={() => setIsSandboxModalOpen(false)}
+          onSaved={(newSandbox) => { setIsSandboxMode(newSandbox); setIsSandboxModalOpen(false); }}
+          notify={notify}
+        />
+      )}
+
+      {isCredentialsModalOpen && (
+        <PaymentCredentialsModal
+          onClose={() => setIsCredentialsModalOpen(false)}
+          onSaved={() => { setHasPaymentCredentials(true); setIsCredentialsModalOpen(false); }}
+          notify={notify}
+        />
+      )}
 
       {/* Section Manager Modal (expenses) */}
       {isSectionManagerOpen && (
@@ -1537,6 +1573,118 @@ const SandboxModeModal = ({ currentSandbox, onClose, onSaved, notify }: {
           <button className="button" style={{ flex: 1, justifyContent: "center" }} disabled={submitting} onClick={handleSave}>
             {submitting ? <Loader2 size={18} className="spin" /> : <Save size={18} />}
             {submitting ? "جار الحفظ..." : `تحويل إلى ${targetSandbox ? "تجريبي" : "فعلي"}`}
+          </button>
+          <button className="button secondary" onClick={onClose} disabled={submitting}>إلغاء</button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+const GATEWAY_SRC_OPTIONS: { id: string; label: string }[] = [
+  { id: "cc", label: "بطاقة ائتمان (CC)" },
+  { id: "knet", label: "كي نت (KNET)" },
+];
+
+const PaymentCredentialsModal = ({ onClose, onSaved, notify }: {
+  onClose: () => void; onSaved: () => void; notify: (msg: string) => void;
+}) => {
+  const [provider] = useState("upayments");
+  const [apiToken, setApiToken] = useState("");
+  const [nwlToken, setNwlToken] = useState("");
+  const [gatewaySrc, setGatewaySrc] = useState("cc");
+  const [webhookSecret, setWebhookSecret] = useState("");
+  const [returnUrl, setReturnUrl] = useState("");
+  const [cancelUrl, setCancelUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const repo = container.adminRepository;
+
+  const handleSave = async () => {
+    if (!apiToken.trim()) {
+      notify("توكن الـ API مطلوب");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await repo.setTenantPaymentCredentials({
+        apiToken: apiToken.trim(),
+        nwlToken: nwlToken.trim(),
+        gatewaySrc,
+        webhookSecret: webhookSecret.trim(),
+        returnUrl: returnUrl.trim(),
+        cancelUrl: cancelUrl.trim(),
+      });
+      notify("تم حفظ بيانات بوابة الدفع");
+      onSaved();
+    } catch (e: any) {
+      notify("فشل حفظ بيانات البوابة: " + (e?.message || ""));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal title="بيانات بوابة الدفع الخاصة بالشركة" onClose={onClose}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <p style={{ margin: 0, color: "#7c857a", lineHeight: "1.6" }}>
+          البيانات دي بتخلي دفعات عملاء شركتك تروح لحساب UPayments بتاعك إنت، بدل الحساب الافتراضي
+          المشترك. القيم بعد الحفظ متخزنة بشكل مشفّر ومحدش (حتى الداشبورد) بيقدر يعرضها تاني —
+          هتحتاج تدخلها من جديد لو عايز تغيّرها.
+        </p>
+
+        <FormField label="بوابة الدفع" required>
+          <select className="input" value={provider} disabled style={{ paddingRight: "12px" }}>
+            <option value="upayments">UPayments</option>
+          </select>
+        </FormField>
+
+        <FormField label="API Token" icon={KeyRound} required>
+          <input
+            type="password" autoComplete="off" className="input" placeholder="أدخل توكن UPayments"
+            value={apiToken} onChange={(e) => setApiToken(e.target.value)} style={{ paddingRight: "40px" }}
+          />
+        </FormField>
+
+        <FormField label="White-label Token (اختياري)" icon={KeyRound}>
+          <input
+            type="password" autoComplete="off" className="input" placeholder="لو مختلف عن API Token"
+            value={nwlToken} onChange={(e) => setNwlToken(e.target.value)} style={{ paddingRight: "40px" }}
+          />
+        </FormField>
+
+        <FormField label="Webhook Secret" icon={KeyRound} required>
+          <input
+            type="password" autoComplete="off" className="input" placeholder="سر توقيع الـ webhook"
+            value={webhookSecret} onChange={(e) => setWebhookSecret(e.target.value)} style={{ paddingRight: "40px" }}
+          />
+        </FormField>
+
+        <FormField label="طريقة الدفع الافتراضية" required>
+          <CustomSelect
+            options={GATEWAY_SRC_OPTIONS}
+            value={gatewaySrc}
+            onChange={setGatewaySrc}
+          />
+        </FormField>
+
+        <FormField label="Return URL" icon={Link2}>
+          <input
+            type="text" className="input" placeholder="رابط الرجوع بعد الدفع الناجح"
+            value={returnUrl} onChange={(e) => setReturnUrl(e.target.value)} style={{ paddingRight: "40px" }}
+          />
+        </FormField>
+
+        <FormField label="Cancel URL" icon={Link2}>
+          <input
+            type="text" className="input" placeholder="رابط الرجوع عند الإلغاء"
+            value={cancelUrl} onChange={(e) => setCancelUrl(e.target.value)} style={{ paddingRight: "40px" }}
+          />
+        </FormField>
+
+        <div style={{ display: "flex", gap: "12px", borderTop: "1px solid #f5f3ef", paddingTop: "16px" }}>
+          <button className="button" style={{ flex: 1, justifyContent: "center" }} disabled={submitting} onClick={handleSave}>
+            {submitting ? <Loader2 size={18} className="spin" /> : <Save size={18} />}
+            {submitting ? "جار الحفظ..." : "حفظ"}
           </button>
           <button className="button secondary" onClick={onClose} disabled={submitting}>إلغاء</button>
         </div>

@@ -1642,6 +1642,31 @@ export class SupabaseAdminRepository implements AdminRepository {
     if (error) throw error;
   }
 
+  async hasTenantPaymentCredentials(): Promise<boolean> {
+    const { data, error } = await supabase.rpc("has_tenant_payment_credentials");
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  async setTenantPaymentCredentials(input: {
+    apiToken: string;
+    nwlToken: string;
+    gatewaySrc: string;
+    webhookSecret: string;
+    returnUrl: string;
+    cancelUrl: string;
+  }): Promise<void> {
+    const { error } = await supabase.rpc("set_tenant_payment_credentials", {
+      p_api_token: input.apiToken,
+      p_nwl_token: input.nwlToken,
+      p_gateway_src: input.gatewaySrc,
+      p_webhook_secret: input.webhookSecret,
+      p_return_url: input.returnUrl,
+      p_cancel_url: input.cancelUrl,
+    });
+    if (error) throw error;
+  }
+
   private nextMonthStart(month: string): string {
     const parts = month.split("-").map(Number);
     const year = parts[0] ?? 0;

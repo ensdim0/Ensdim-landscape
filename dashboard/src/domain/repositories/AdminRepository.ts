@@ -138,6 +138,15 @@ export interface AdminRepository {
   updateUpaymentsFeeAmount(amount: number): Promise<void>;
   getUpaymentsSandboxMode(): Promise<boolean>;
   updateUpaymentsSandboxMode(sandbox: boolean): Promise<void>;
+  hasTenantPaymentCredentials(): Promise<boolean>;
+  setTenantPaymentCredentials(input: {
+    apiToken: string;
+    nwlToken: string;
+    gatewaySrc: string;
+    webhookSecret: string;
+    returnUrl: string;
+    cancelUrl: string;
+  }): Promise<void>;
 
   // Standalone tasks (not tied to contracts)
   listStandaloneTasks(): Promise<StandaloneTask[]>;

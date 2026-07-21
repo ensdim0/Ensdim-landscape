@@ -2,11 +2,17 @@
 // Called from Flutter after the UPayments return URL is intercepted.
 //
 // Logic:
-//   1. If resultFromUrl is CAPTURED or Y → trust it, mark as paid immediately.
-//   2. Else if trackId provided → call UPayments status API as fallback.
-//   3. Update DB: gateway_status='paid', payment_method='gateway', payment_date=today.
-//   4. Notify client (push + in-app) and all admins (in-app) — mirrors
+//   1. If trackId provided → call UPayments status API server-to-server and
+//      trust ONLY that response (never the client-supplied resultFromUrl —
+//      a caller with just the anon key + a paymentId could otherwise forge
+//      "paid" with no real payment).
+//   2. Update DB: gateway_status='paid', payment_method='gateway', payment_date=today.
+//   3. Notify client (push + in-app) and all admins (in-app) — mirrors
 //      upayment-webhook so confirmation isn't missed if the webhook is delayed/down.
+//
+// This is a convenience double-check for the client UI right after redirect —
+// upayment-webhook (server-to-server, HMAC-verified) remains the authoritative
+// source of truth for marking payments paid.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -32,15 +38,18 @@ serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   // ── Parse body ──────────────────────────────────────────────────────────────
+  // Note: resultFromUrl (the return-URL result code) is intentionally NOT read
+  // here — it's client-supplied and was previously trusted directly, which let
+  // anyone holding a paymentId forge a "paid" result. Only trackId is used, and
+  // only to look up the real status server-to-server via the UPayments API.
   let paymentId: string, paymentType: "contract" | "standalone";
-  let trackId: string | undefined, resultFromUrl: string | undefined;
+  let trackId: string | undefined;
 
   try {
     const body    = await req.json();
     paymentId     = body.paymentId   as string;
     paymentType   = body.paymentType as "contract" | "standalone";
     trackId       = body.trackId     as string | undefined;
-    resultFromUrl = body.resultFromUrl as string | undefined;
     if (!paymentId || !paymentType) throw new Error("missing paymentId or paymentType");
   } catch (e) {
     return new Response(`Bad Request: ${(e as Error).message}`, { status: 400, headers: cors });
@@ -117,15 +126,9 @@ serve(async (req: Request): Promise<Response> => {
   let feeAmount = 0;
   let payMethod = "";
 
-  // Path 1: trust the result code from the return URL
-  const urlResult = (resultFromUrl ?? "").trim().toUpperCase();
-  if (SUCCESS_CODES.has(urlResult)) {
-    isPaid = true;
-    console.log(`[verify-upayment] trusted URL result: ${urlResult}`);
-  }
-
-  // Path 2: call UPayments status API using trackId (fallback)
-  if (!isPaid && trackId) {
+  // Server-to-server status check via UPayments API using trackId — the only
+  // source of truth here (never trust a client-supplied result code).
+  if (trackId) {
     try {
       const res  = await fetch(`${STATUS_BASE}/${encodeURIComponent(trackId)}`, {
         headers: { Authorization: `Bearer ${API_TOKEN}`, Accept: "application/json" },

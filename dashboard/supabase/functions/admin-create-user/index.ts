@@ -253,12 +253,17 @@ serve(async (req: Request) => {
 
     let user;
 
+    // Note: tenant_id is deliberately NOT passed in user_metadata here — the
+    // handle_new_user() trigger no longer trusts a client/metadata-supplied
+    // tenant_id (that path was a cross-tenant signup vector), so the new
+    // user's tenant_id is set explicitly below via the profile upsert
+    // (service role, safe) instead.
     const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: actualEmail,
       password,
       email_confirm: true,
       app_metadata: { role: role || 'client' },
-      user_metadata: { fullName, role: role || 'client', phone: actualPhone, tenant_id: callerTenantId }
+      user_metadata: { fullName, role: role || 'client', phone: actualPhone }
     })
 
     if (createError) {
