@@ -6,6 +6,16 @@
 // RPC) rather than requiring a redeploy. UPAYMENTS_SANDBOX below is only the fallback used if
 // that DB read fails.
 //
+// SECURITY: three legitimate caller classes are accepted —
+//   1. Internal service-to-service calls (generate-payment-reminders, notify-payment-now)
+//      authenticate with Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>.
+//   2. The client themselves paying their own payment (mobile app) — a normal user JWT
+//      whose auth.uid() matches the payment's real owning client, verified server-side.
+//   3. An admin/supervisor of the tenant that owns the payment (dashboard "إرسال الآن").
+// `amount` and the recipient client are always re-derived from the DB row — the request
+// body is never trusted for either, closing the amount-tampering / notification-spoofing
+// hole that existed when this function had no auth check at all.
+//
 // Required Supabase secrets:
 //   UPAYMENTS_API_TOKEN    — production token (from UPayments merchant dashboard)
 //   UPAYMENTS_SANDBOX      — fallback only; set to "true" to default to sandbox (test token = jtest123 auto-used)
@@ -29,34 +39,76 @@ const NOTIFICATION_SECRET  = Deno.env.get("NOTIFICATION_SECRET")  ?? "";
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")         ?? "";
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin":  "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// ── CORS (origin allowlist, same pattern as admin-update-user) ────────────────
+const rawAllowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") ?? "").trim();
+const hasExplicitAllowedOrigins = rawAllowedOrigins.length > 0;
+const allowedOrigins = (hasExplicitAllowedOrigins
+  ? rawAllowedOrigins
+  : "http://localhost:5173,http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+function isLocalDevOrigin(origin: string): boolean {
+  try {
+    const parsed = new URL(origin);
+    return parsed.protocol === "http:"
+      && (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1" || parsed.hostname === "[::1]" || parsed.hostname === "::1");
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (isLocalDevOrigin(origin)) return true;
+  if (allowedOrigins.includes("*") || allowedOrigins.includes(origin)) return true;
+  if (!hasExplicitAllowedOrigins) {
+    try {
+      const parsed = new URL(origin);
+      const isLocalhost = (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") && parsed.protocol === "http:";
+      return parsed.protocol === "https:" || isLocalhost;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+function getCorsHeaders(origin: string | null) {
+  return {
+    "Access-Control-Allow-Origin":  isAllowedOrigin(origin) ? origin! : "null",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
+
+function extractBearerToken(headerValue: string | null): string {
+  if (!headerValue) return "";
+  const match = headerValue.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() ?? "";
+}
 
 serve(async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   // ── Parse body ─────────────────────────────────────────────────────────────
+  // Only paymentId/paymentType/silent/gatewaySrc come from the caller — amount,
+  // clientUserId, contractId/taskId are always re-derived from the DB below.
   let paymentId: string;
   let paymentType: "contract" | "standalone";
-  let amount: number;
-  let clientUserId: string;
-  let contractId: string | undefined;
-  let taskId: string | undefined;
-  let gatewaySrc: string | undefined;
   let silent: boolean;
+  let gatewaySrc: string | undefined;
 
   try {
     const body = await req.json();
     paymentId    = body.paymentId   as string;
     paymentType  = body.paymentType as "contract" | "standalone";
-    amount       = body.amount      as number;
-    clientUserId = body.clientUserId as string;
-    contractId   = body.contractId  as string | undefined;
-    taskId       = body.taskId      as string | undefined;
     // Set by the client app when the client themselves taps "ادفع الآن" —
     // they're already looking at the screen, so skip the push notification
     // (avoids re-notifying them every time they retry the payment link).
@@ -64,7 +116,7 @@ serve(async (req: Request): Promise<Response> => {
     // Caller-provided gateway method; final default resolved below once sandbox mode is known
     gatewaySrc   = body.gatewaySrc as string | undefined;
 
-    if (!paymentId || !paymentType || !amount || !clientUserId) {
+    if (!paymentId || !paymentType) {
       throw new Error("missing required fields");
     }
   } catch (e) {
@@ -80,19 +132,91 @@ serve(async (req: Request): Promise<Response> => {
     auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
   });
 
-  // ── Resolve which tenant (company) this payment belongs to ─────────────────
-  // Every tenant can run its own UPayments merchant account — look up the
-  // payment's tenant_id and load that tenant's credentials, falling back to
-  // the shared env vars/app_config for tenants that haven't configured their
-  // own gateway yet (this is how Ensdim's existing setup keeps working
-  // unchanged).
-  const paymentTableForLookup = paymentType === "contract" ? "contract_payments" : "standalone_task_payments";
-  const { data: paymentTenantRow } = await supabase
-    .from(paymentTableForLookup)
-    .select("tenant_id")
+  // ── Load the real payment row — amount/tenant/status/owner all come from
+  // here, never from the request body ─────────────────────────────────────────
+  const paymentTable = paymentType === "contract" ? "contract_payments" : "standalone_task_payments";
+  const ownerColumn   = paymentType === "contract" ? "contract_id" : "task_id";
+  const { data: paymentRow, error: paymentLookupErr } = await supabase
+    .from(paymentTable)
+    .select(`id, amount, tenant_id, gateway_status, ${ownerColumn}`)
     .eq("id", paymentId)
     .maybeSingle();
-  const tenantId = (paymentTenantRow?.tenant_id as string | null) ?? null;
+
+  if (paymentLookupErr || !paymentRow) {
+    return new Response("Not Found: payment does not exist", { status: 404, headers: corsHeaders });
+  }
+  if (paymentRow.gateway_status === "paid") {
+    return new Response("Conflict: payment is already paid", { status: 409, headers: corsHeaders });
+  }
+
+  const amount     = Number(paymentRow.amount);
+  const tenantId   = (paymentRow.tenant_id as string | null) ?? null;
+  const contractId = paymentType === "contract"    ? (paymentRow as any).contract_id as string : undefined;
+  const taskId     = paymentType === "standalone"  ? (paymentRow as any).task_id     as string : undefined;
+
+  // Resolve the payment's real owning client from the contract/task, never
+  // from the request body.
+  let realClientUserId: string | null = null;
+  if (paymentType === "contract" && contractId) {
+    const { data: contractRow } = await supabase.from("contracts").select("user_id").eq("id", contractId).maybeSingle();
+    realClientUserId = (contractRow?.user_id as string | null) ?? null;
+  } else if (paymentType === "standalone" && taskId) {
+    const { data: taskRow } = await supabase.from("standalone_tasks").select("client_id").eq("id", taskId).maybeSingle();
+    realClientUserId = (taskRow?.client_id as string | null) ?? null;
+  }
+  if (!realClientUserId) {
+    return new Response("Not Found: payment has no associated client", { status: 404, headers: corsHeaders });
+  }
+
+  // ── Authentication / authorization ──────────────────────────────────────────
+  const authHeader   = req.headers.get("Authorization") ?? req.headers.get("authorization");
+  const accessToken  = extractBearerToken(authHeader);
+  const isInternalCall = Boolean(SUPABASE_SERVICE_KEY) && accessToken === SUPABASE_SERVICE_KEY;
+
+  if (!isInternalCall) {
+    if (!accessToken) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: { user: callerUser }, error: authError } = await supabase.auth.getUser(accessToken);
+    if (authError || !callerUser) {
+      return new Response(JSON.stringify({ error: "Unauthorized", message: authError?.message ?? "Invalid or expired access token" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const isSelf = callerUser.id === realClientUserId;
+
+    if (!isSelf) {
+      // Not the payment's own client — must be an admin of the same tenant.
+      const appMetadataRole = String((callerUser as any)?.app_metadata?.role ?? "").toLowerCase();
+      let hasAdminRole = appMetadataRole === "admin";
+
+      if (!hasAdminRole) {
+        const { data: adminRoleRow } = await supabase.from("roles").select("id").eq("name", "admin").maybeSingle();
+        if (adminRoleRow) {
+          const { data: callerAdminRole } = await supabase
+            .from("user_roles")
+            .select("user_id")
+            .eq("user_id", callerUser.id)
+            .eq("role_id", adminRoleRow.id)
+            .maybeSingle();
+          hasAdminRole = Boolean(callerAdminRole);
+        }
+      }
+
+      const { data: callerProfile } = await supabase.from("users").select("tenant_id").eq("id", callerUser.id).maybeSingle();
+      const callerTenantId = callerProfile?.tenant_id ?? null;
+
+      if (!hasAdminRole || !callerTenantId || callerTenantId !== tenantId) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+  }
 
   let tenantCreds: {
     api_token: string | null; nwl_token: string | null; gateway_src: string | null;
@@ -152,7 +276,7 @@ serve(async (req: Request): Promise<Response> => {
   const { data: userRow } = await supabase
     .from("users")
     .select("name, email, phone")
-    .eq("id", clientUserId)
+    .eq("id", realClientUserId)
     .maybeSingle();
 
   const customerName   = (userRow?.name   as string | null)  ?? "العميل";
@@ -191,7 +315,7 @@ serve(async (req: Request): Promise<Response> => {
       language:    "ar",
     },
     customer: {
-      uniqueId: clientUserId.replace(/-/g, "").substring(0, 35),
+      uniqueId: realClientUserId.replace(/-/g, "").substring(0, 35),
       name:     customerName  || "عميل",
       email:    customerEmail || "noreply@ensdim.local",
       mobile:   customerMobile || "",
@@ -214,7 +338,6 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     console.log(`[create-upayment-charge] ${isSandbox ? "SANDBOX" : "PRODUCTION"} → ${UPAYMENTS_API_URL}`);
-    console.log("[create-upayment-charge] service key length:", SUPABASE_SERVICE_KEY.length);
 
     const upRes = await fetch(UPAYMENTS_API_URL, {
       method: "POST",
@@ -258,15 +381,15 @@ serve(async (req: Request): Promise<Response> => {
   // ── Calculate fee ───────────────────────────────────────────────────────────
   const gatewayFeeAmount = gatewayFeeAmountSetting;
 
-  // ── Update payment row ──────────────────────────────────────────────────────
-  const table = paymentType === "contract" ? "contract_payments" : "standalone_task_payments";
-  const { error: updateErr } = await supabase.from(table).update({
+  // ── Update payment row (only if still pending — guards against a race with
+  // a webhook that just marked it paid while the UPayments call was in flight) ──
+  const { error: updateErr } = await supabase.from(paymentTable).update({
     payment_gateway_url:      paymentUrl,
     payment_gateway_order_id: orderId,
     gateway_status:           "pending",
     gateway_fee_amount:       gatewayFeeAmount,
     ...(sessionId ? { gateway_session_id: sessionId } : {}),
-  }).eq("id", paymentId);
+  }).eq("id", paymentId).neq("gateway_status", "paid");
 
   if (updateErr) {
     console.error("[create-upayment-charge] DB update error:", updateErr.message);
@@ -279,7 +402,7 @@ serve(async (req: Request): Promise<Response> => {
   // ── Send FCM push to client (skip if the client initiated this themselves) ──
   if (!silent) {
     const notifPayload: Record<string, string | number> = {
-      clientId:    clientUserId,
+      clientId:    realClientUserId,
       notifType:   "payment_request",
       paymentId:   paymentId,
       paymentType: paymentType,

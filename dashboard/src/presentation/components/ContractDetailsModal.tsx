@@ -26,6 +26,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { container } from "@infrastructure/di/container";
+import { supabase } from "@infrastructure/supabase/client";
 import { formatDate, formatTime, formatDateTime } from "@shared/utils/date";
 import { ContractPayment, PaymentMethod } from "@domain/entities/ContractPayment";
 import { SupervisorNote } from "@domain/entities/SupervisorNote";
@@ -725,17 +726,11 @@ export const ContractDetailsModal = ({
 
         // If the due date is already within the reminder window (≤3 days away,
         // or in the past), notify the client immediately instead of waiting for
-        // the next daily cron run.
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-        fetch(`${supabaseUrl}/functions/v1/notify-payment-now`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${supabaseKey}`,
-          },
-          body: JSON.stringify({ paymentId: created.id }),
-        }).catch((e) => console.warn("notify-payment-now failed:", e));
+        // the next daily cron run. functions.invoke() attaches the admin's own
+        // session JWT automatically, which the function now requires.
+        supabase.functions
+          .invoke("notify-payment-now", { body: { paymentId: created.id } })
+          .catch((e) => console.warn("notify-payment-now failed:", e));
 
         resetAddPaymentForm();
         await loadPayments();
@@ -865,30 +860,16 @@ export const ContractDetailsModal = ({
   const handleSendGatewayPayment = async (payment: ContractPayment) => {
     setSendingGatewayId(payment.id);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-
-      // Look up the client user_id from the contract
-      const clientUserId = contract.clientId as string | undefined;
-      if (!clientUserId) throw new Error("لا يوجد عميل مرتبط بهذا العقد");
-
-      const res = await fetch(`${supabaseUrl}/functions/v1/create-upayment-charge`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseKey}`,
+      // functions.invoke() attaches the admin's own session JWT automatically,
+      // which the function now requires; amount/client are re-derived server-side.
+      const { error: invokeError } = await supabase.functions.invoke("create-upayment-charge", {
+        body: {
+          paymentId:   payment.id,
+          paymentType: "contract",
         },
-        body: JSON.stringify({
-          paymentId:    payment.id,
-          paymentType:  "contract",
-          amount:       payment.amount,
-          clientUserId: clientUserId,
-          contractId:   payment.contractId,
-        }),
       });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "فشل إنشاء رابط الدفع");
+      if (invokeError) {
+        throw new Error(invokeError.message || "فشل إنشاء رابط الدفع");
       }
       await loadPayments();
       notify("تم إرسال رابط الدفع للعميل ✓");

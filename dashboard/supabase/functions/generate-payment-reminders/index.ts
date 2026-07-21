@@ -8,7 +8,13 @@
 //
 // Schedule in Supabase Dashboard: 0 4 * * *  (04:00 UTC = 07:00 KWT)
 //
+// SECURITY: this endpoint has no other authentication, so it's gated by a
+// shared secret the Dashboard cron job must send as `x-cron-secret` — set the
+// SAME value as the CRON_SECRET Supabase secret and the private.app_config
+// 'cron_secret' row (see 2026-08-01_cron_secret_config.sql).
+//
 // Required Supabase secrets:
+//   CRON_SECRET,
 //   UPAYMENTS_API_TOKEN, UPAYMENTS_RETURN_URL, UPAYMENTS_CANCEL_URL,
 //   UPAYMENTS_WEBHOOK_URL, UPAYMENTS_FEE_AMOUNT,
 //   NOTIFICATION_SECRET,
@@ -17,11 +23,16 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const CRON_SECRET          = Deno.env.get("CRON_SECRET")          ?? "";
 const NOTIFICATION_SECRET  = Deno.env.get("NOTIFICATION_SECRET")  ?? "";
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")         ?? "";
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-serve(async (_req: Request): Promise<Response> => {
+serve(async (req: Request): Promise<Response> => {
+  if (!CRON_SECRET || req.headers.get("x-cron-secret") !== CRON_SECRET) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
   const today    = new Date().toISOString().split("T")[0];
   const plus1    = offsetDate(1);

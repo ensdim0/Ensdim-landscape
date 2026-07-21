@@ -1,0 +1,31 @@
+-- Security fix: cleanup-old-data and generate-payment-reminders had no
+-- authentication at all — anyone who found the URL could trigger them
+-- on demand (repeated triggering of generate-payment-reminders spams real
+-- push notifications to real clients; it also fans out into the now-secured
+-- create-upayment-charge). Both functions now require an `x-cron-secret`
+-- header matching the CRON_SECRET Supabase secret.
+--
+-- This row is what the Dashboard's Scheduled Trigger (pg_cron → net.http_post)
+-- must send as that header — same storage pattern already used for
+-- 'notification_secret'/'edge_function_url' in 20260525_push_notifications.sql.
+--
+-- MANUAL STEP REQUIRED (not done by this migration):
+-- 1. Generate a random secret, e.g.: openssl rand -hex 32
+-- 2. Set it as a Supabase secret so the edge functions can check it:
+--      supabase secrets set CRON_SECRET=<the-secret>
+-- 3. Run the INSERT below (uncommented, with the SAME secret value) so
+--    SQL-side callers can read it too.
+-- 4. Open Database → Cron Jobs in the Supabase Dashboard for the
+--    cleanup-old-data and generate-payment-reminders schedules and add
+--    header  x-cron-secret: <the-secret>  to each job's HTTP request config
+--    (or, if the job is defined as a `cron.schedule(... net.http_post(...))`
+--    SQL job rather than a Dashboard-managed HTTP trigger, add:
+--      headers := jsonb_build_object(
+--        'Content-Type',  'application/json',
+--        'x-cron-secret', (SELECT value FROM private.app_config WHERE key = 'cron_secret')
+--      )
+--    to that job's net.http_post(...) call).
+--
+-- INSERT INTO private.app_config (key, value) VALUES
+--   ('cron_secret', '<the-same-secret-as-CRON_SECRET>')
+-- ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
