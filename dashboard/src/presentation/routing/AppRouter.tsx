@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "@presentation/components/Layout";
 import { LoginPage } from "@presentation/screens/LoginPage";
+import { RegisterPage } from "@presentation/screens/RegisterPage";
 import { AdminDashboard } from "@presentation/screens/admin/AdminDashboard";
 import { ClientsPage } from "@presentation/screens/admin/ClientsPage";
 import { LinesPage } from "@presentation/screens/admin/LinesPage";
@@ -24,6 +25,7 @@ export const AppRouter = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route
         path="/admin"
         element={

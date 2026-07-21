@@ -12,5 +12,5 @@ export type User = {
   assignmentEndDate?: string;
   tenantId?: string;
   tenantName?: string;
-  tenantStatus?: "active" | "suspended" | "trial";
+  tenantStatus?: "active" | "suspended" | "trial" | "pending";
 };

@@ -4,6 +4,8 @@ import { container } from "@infrastructure/di/container";
 import { supabase } from "@infrastructure/supabase/client";
 import { login as loginUseCase } from "@application/use-cases/auth/login";
 import { logout as logoutUseCase } from "@application/use-cases/auth/logout";
+import { registerCompany as registerCompanyUseCase } from "@application/use-cases/auth/registerCompany";
+import { RegisterCompanyPayload } from "@domain/repositories/AuthRepository";
 import { useToast } from "@presentation/components/ToastProvider";
 
 export const useAuth = () => {
@@ -67,5 +69,14 @@ export const useAuth = () => {
     setUser(null);
   }, [notify]);
 
-  return { user, loading, login, logout };
+  const registerCompany = useCallback(async (payload: RegisterCompanyPayload) => {
+    const result = await registerCompanyUseCase(container.authRepository, payload);
+    if (!result.ok) {
+      notify(result.error.message);
+      return false;
+    }
+    return true;
+  }, [notify]);
+
+  return { user, loading, login, logout, registerCompany };
 };

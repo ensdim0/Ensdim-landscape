@@ -249,6 +249,7 @@ const Map<String, String> stringsEn = {
   'errorUpdatingVisit': 'Error updating visit',
   'errorExecutingTask': 'Error executing task',
   'errorUploadingPhoto': 'Error uploading photo',
+  'videoTooLarge': 'This video is too large (max 15MB). Please choose a shorter one.',
   'dateRequired': 'Please select a date',
   'noTasksYet': 'No standalone tasks yet',
   'standaloneTasks': 'Standalone Tasks',

@@ -2196,8 +2196,8 @@ class _VisitsTabState extends State<_VisitsTab> {
                                         final picked = await _imagePicker
                                             .pickImage(
                                               source: ImageSource.gallery,
-                                              maxWidth: 2048,
-                                              imageQuality: 80,
+                                              maxWidth: 1600,
+                                              imageQuality: 75,
                                             );
                                         if (picked != null) {
                                           setState(

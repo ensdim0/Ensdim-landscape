@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@presentation/state/useAuth";
 import { Mail, Loader2, ShieldAlert, Eye, EyeOff } from "lucide-react";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit, formatLockoutTime } from "@core/security/rateLimiter";
@@ -137,6 +137,10 @@ export const LoginPage = () => {
               {loading ? <Loader2 size={22} className="spin" /> : isLocked ? "تم قفل الحساب مؤقتا" : "دخول النظام"}
             </button>
           </form>
+
+          <div className="auth-alt-link">
+            شركتك مش مسجلة عندنا؟ <Link to="/register">سجّل شركتك</Link>
+          </div>
 
           <div className="auth-footer">© 2026 Ensdim - جميع الحقوق محفوظة</div>
         </section>

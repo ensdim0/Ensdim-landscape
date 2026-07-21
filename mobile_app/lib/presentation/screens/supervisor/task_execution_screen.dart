@@ -375,9 +375,9 @@ class _TaskExecutionScreenState extends State<TaskExecutionScreen> {
 
       final picked = await _imagePicker.pickImage(
         source: source,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
+        maxWidth: 1280,
+        maxHeight: 720,
+        imageQuality: 70,
       );
 
       if (!mounted || picked == null) return;

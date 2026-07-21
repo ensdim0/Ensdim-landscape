@@ -250,6 +250,7 @@ const Map<String, String> stringsAr = {
   'errorUpdatingVisit': 'حدث خطأ في تحديث الزيارة',
   'errorExecutingTask': 'حدث خطأ في تنفيذ المهمة',
   'errorUploadingPhoto': 'حدث خطأ في رفع الصورة',
+  'videoTooLarge': 'الفيديو ده كبير جدًا (الحد الأقصى 15 ميجا)، اختار فيديو أقصر.',
   'dateRequired': 'يرجى اختيار التاريخ',
   'noTasksYet': 'لا توجد مهام بعد',
   'standaloneTasks': 'المهام المستقلة',

@@ -2117,6 +2117,23 @@ a {
   font-size: 0.75rem;
 }
 
+.auth-alt-link {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.auth-alt-link a {
+  color: var(--purple-600);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-alt-link a:hover {
+  text-decoration: underline;
+}
+
 .ltr-input {
   text-align: left;
 }

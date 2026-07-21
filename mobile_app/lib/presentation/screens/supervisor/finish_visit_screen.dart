@@ -461,23 +461,24 @@ class _FinishVisitScreenState extends State<FinishVisitScreen> {
           picked = await _imagePicker.pickImage(
             source: ImageSource.camera,
             preferredCameraDevice: CameraDevice.rear,
-            maxWidth: 1920,
-            maxHeight: 1080,
-            imageQuality: 85,
+            maxWidth: 1280,
+            maxHeight: 720,
+            imageQuality: 70,
           );
           break;
         case _MediaPickAction.choosePhoto:
           picked = await _imagePicker.pickImage(
             source: ImageSource.gallery,
-            maxWidth: 1920,
-            maxHeight: 1080,
-            imageQuality: 85,
+            maxWidth: 1280,
+            maxHeight: 720,
+            imageQuality: 70,
           );
           break;
         case _MediaPickAction.recordVideo:
           picked = await _imagePicker.pickVideo(
             source: ImageSource.camera,
             preferredCameraDevice: CameraDevice.rear,
+            maxDuration: const Duration(seconds: 20),
           );
           break;
         case _MediaPickAction.chooseVideo:
@@ -487,6 +488,21 @@ class _FinishVisitScreenState extends State<FinishVisitScreen> {
 
       if (!mounted || picked == null) return;
       final pickedPath = picked.path;
+
+      // Gallery videos have no duration cap at pick time, so guard on file
+      // size instead — an unbounded video can eat the storage bucket in a
+      // couple of uploads.
+      if (action == _MediaPickAction.chooseVideo) {
+        const maxVideoBytes = 15 * 1024 * 1024;
+        final size = await File(pickedPath).length();
+        if (size > maxVideoBytes) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context).tr('videoTooLarge'))),
+          );
+          return;
+        }
+      }
 
       setState(() {
         _mediaPaths.add(pickedPath);

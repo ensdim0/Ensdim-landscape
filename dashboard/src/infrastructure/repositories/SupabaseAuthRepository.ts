@@ -1,4 +1,4 @@
-import { AuthRepository, AuthSession } from "@domain/repositories/AuthRepository";
+import { AuthRepository, AuthSession, RegisterCompanyPayload } from "@domain/repositories/AuthRepository";
 import { supabase } from "@infrastructure/supabase/client";
 import { User } from "@domain/entities/User";
 
@@ -111,5 +111,29 @@ export class SupabaseAuthRepository implements AuthRepository {
 
     const info = await fetchUserRole(data.user.id);
     return mapUser(data.user, info);
+  }
+
+  /**
+   * Public "register a new company" signup. Uses the normal anon signUp
+   * call (not an edge function) so Supabase's built-in email-confirmation
+   * flow fires exactly like it would for any other signup. The
+   * `new_company_name` metadata is what handle_new_user() checks server-side
+   * to create a brand-new tenant with status 'pending' and make this user
+   * its admin — see 2026-07-30_company_self_registration.sql.
+   */
+  async registerCompany(payload: RegisterCompanyPayload): Promise<void> {
+    const { error } = await supabase.auth.signUp({
+      email: payload.email,
+      password: payload.password,
+      options: {
+        data: {
+          fullName: payload.fullName,
+          phone: payload.phone,
+          new_company_name: payload.companyName
+        }
+      }
+    });
+
+    if (error) throw error;
   }
 }

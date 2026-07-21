@@ -5,8 +5,15 @@ type Tenant = {
   id: string;
   name: string;
   slug: string;
-  status: "active" | "suspended" | "trial";
+  status: "active" | "suspended" | "trial" | "pending";
   created_at: string;
+};
+
+const STATUS_LABELS: Record<Tenant["status"], string> = {
+  active: "نشطة",
+  suspended: "موقوفة",
+  trial: "تجريبية",
+  pending: "بانتظار الموافقة",
 };
 
 type TenantUser = {
@@ -127,7 +134,13 @@ function CompaniesDashboard({ accessToken }: { accessToken: string }) {
       .select("id, name, slug, status, created_at")
       .order("created_at", { ascending: false });
 
-    setTenants(tenantRows ?? []);
+    const sorted = [...(tenantRows ?? [])].sort((a, b) => {
+      if (a.status === "pending" && b.status !== "pending") return -1;
+      if (b.status === "pending" && a.status !== "pending") return 1;
+      return 0;
+    });
+
+    setTenants(sorted);
 
     const counts: Record<string, number> = {};
     for (const t of tenantRows ?? []) {
@@ -151,6 +164,13 @@ function CompaniesDashboard({ accessToken }: { accessToken: string }) {
     reload();
   }
 
+  async function approveCompany(tenant: Tenant) {
+    await supabase.from("tenants").update({ status: "active" }).eq("id", tenant.id);
+    reload();
+  }
+
+  const pendingCount = tenants.filter((t) => t.status === "pending").length;
+
   return (
     <div className="page">
       <header className="topbar">
@@ -160,6 +180,12 @@ function CompaniesDashboard({ accessToken }: { accessToken: string }) {
           <button onClick={() => supabase.auth.signOut()}>تسجيل خروج</button>
         </div>
       </header>
+
+      {pendingCount > 0 && (
+        <p className="hint">
+          فيه <b>{pendingCount}</b> شركة سجّلت نفسها وبانتظار موافقتك — راجعها في أول الجدول.
+        </p>
+      )}
 
       {loading ? (
         <p>جارِ التحميل...</p>
@@ -185,14 +211,18 @@ function CompaniesDashboard({ accessToken }: { accessToken: string }) {
                 </td>
                 <td>{t.slug}</td>
                 <td>
-                  <span className={`badge badge-${t.status}`}>{t.status}</span>
+                  <span className={`badge badge-${t.status}`}>{STATUS_LABELS[t.status]}</span>
                 </td>
                 <td>{userCounts[t.id] ?? "..."}</td>
                 <td>{new Date(t.created_at).toLocaleDateString("ar-EG")}</td>
                 <td>
-                  <button onClick={() => toggleStatus(t)}>
-                    {t.status === "suspended" ? "تفعيل" : "تعليق"}
-                  </button>
+                  {t.status === "pending" ? (
+                    <button onClick={() => approveCompany(t)}>قبول</button>
+                  ) : (
+                    <button onClick={() => toggleStatus(t)}>
+                      {t.status === "suspended" ? "تفعيل" : "تعليق"}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -415,7 +445,7 @@ function CompanyDetailModal({
         {renameError && <p className="error">{renameError}</p>}
 
         <p className="hint">
-          {tenant.slug} — <span className={`badge badge-${tenant.status}`}>{tenant.status}</span>
+          {tenant.slug} — <span className={`badge badge-${tenant.status}`}>{STATUS_LABELS[tenant.status]}</span>
         </p>
 
         {loading ? (
