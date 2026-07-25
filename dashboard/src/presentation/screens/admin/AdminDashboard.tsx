@@ -24,6 +24,7 @@ import { GeographicLine } from "@domain/entities/GeographicLine";
 import { Zone } from "@domain/entities/Zone";
 import { ContractType } from "@domain/entities/ContractType";
 import { LoadingState, ErrorState } from "@presentation/components/States";
+import { SetupGuideCard } from "@presentation/components/admin/SetupGuideCard";
 import { useAuth } from "@presentation/state/useAuth";
 import { useTour } from "@presentation/components/tour/useTour";
 import { formatDate } from "@shared/utils/date";
@@ -321,6 +322,17 @@ export const AdminDashboard = () => {
           </button>
         </div>
       </section>
+
+      <SetupGuideCard
+        contractTypesCount={stats.contractTypes.length}
+        linesCount={stats.lines.length}
+        supervisorsCount={activeSupervisors.length}
+        vehiclesCount={stats.vehicles.length}
+        phonesCount={stats.phones.length}
+        workersCount={stats.workers.length}
+        contractsCount={stats.contracts.length}
+        tenantId={user?.tenantId}
+      />
 
       <section className="dashboard-kpi-grid" data-tour="dashboard-kpi-grid">
         {kpiCards.map((card) => {

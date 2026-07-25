@@ -1236,6 +1236,7 @@ const InputGroup = ({ label, required, children, style }: any) => (
 );
 
 const ContractFormModal = ({ title, initialData, clients, lines, types, contracts, isEdit, onClose, onSubmit, onPaymentSummaryChange }: any) => {
+    const navigate = useNavigate();
     const steps = [
         { id: 1, title: 'البيانات الأساسية', icon: FileText, desc: 'العميل ونوع العقد' },
         { id: 2, title: 'الموقع والعنوان', icon: MapPin, desc: 'تفاصيل العنوان الدقيق' },
@@ -1568,6 +1569,10 @@ const ContractFormModal = ({ title, initialData, clients, lines, types, contract
         if (validateStep(currentStep)) {
             setStepError(null);
             setCurrentStep(prev => Math.min(prev + 1, steps.length));
+        } else if (currentStep === 1 && types.length === 0) {
+            setStepError('لا يمكن المتابعة قبل إضافة نوع عقد واحد على الأقل.');
+        } else if (currentStep === 2 && lines.length === 0) {
+            setStepError('لا يمكن المتابعة قبل إضافة خط جغرافي واحد على الأقل.');
         } else {
              setStepError('يرجى ملء الحقول الإلزامية (*) للمتابعة');
         }
@@ -1878,14 +1883,22 @@ const ContractFormModal = ({ title, initialData, clients, lines, types, contract
                             </InputGroup>
 
                             <InputGroup label="نوع العقد" required>
-                                <CustomSelect 
-                                    value={formData.contractTypeId} 
+                                <CustomSelect
+                                    value={formData.contractTypeId}
                                     onChange={val => handleChange('contractTypeId', val)}
                                     options={types.map((t: any) => ({ id: t.id, label: t.name }))}
                                     placeholder="اختر النوع"
                                     width="100%"
                                 />
                             </InputGroup>
+
+                            {types.length === 0 && (
+                                <div style={{ background: 'var(--color-warning-bg)', color: 'var(--color-warning)', padding: '10px 14px', borderRadius: '8px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border-warning)' }}>
+                                    <AlertCircle size={16} />
+                                    <span style={{ flex: 1 }}>لا توجد أنواع عقود مُعرّفة بعد. أضف نوع عقد واحد على الأقل قبل المتابعة.</span>
+                                    <button type="button" className="button secondary" onClick={() => { onClose(); navigate('/admin/contract-types'); }}>إضافة نوع عقد</button>
+                                </div>
+                            )}
 
                              <InputGroup label="حالة العقد">
                                 <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-subtle)', padding: '4px', borderRadius: '8px' }}>
@@ -2051,6 +2064,14 @@ const ContractFormModal = ({ title, initialData, clients, lines, types, contract
                                 />
                             </InputGroup>
                         </div>
+
+                        {lines.length === 0 && (
+                            <div style={{ background: 'var(--color-warning-bg)', color: 'var(--color-warning)', padding: '10px 14px', borderRadius: '8px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border-warning)' }}>
+                                <AlertCircle size={16} />
+                                <span style={{ flex: 1 }}>لا توجد خطوط جغرافية مُعرّفة بعد. أضف خطًا ومنطقة على الأقل قبل تحديد موقع العقد.</span>
+                                <button type="button" className="button secondary" onClick={() => { onClose(); navigate('/admin/lines-only'); }}>إضافة خط ومنطقة</button>
+                            </div>
+                        )}
 
                         <div style={{ padding: '20px', background: 'var(--neutral-50)', borderRadius: '16px', border: '1px solid var(--neutral-200)' }}>
                             <h4 style={{ margin: '0 0 16px 0', fontSize: '0.95rem', color: 'var(--text-primary)' }}>تفاصيل العنوان</h4>
