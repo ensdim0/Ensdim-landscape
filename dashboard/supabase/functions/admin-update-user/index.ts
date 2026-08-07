@@ -176,7 +176,7 @@ serve(async (req: Request) => {
 
     const { data: targetProfile } = await supabaseAdmin
       .from('users')
-      .select('tenant_id')
+      .select('tenant_id, phone, email')
       .eq('id', id)
       .maybeSingle()
 
@@ -186,6 +186,14 @@ serve(async (req: Request) => {
         status: 404,
       })
     }
+
+    const { data: targetRoleRow } = await supabaseAdmin
+      .from('user_roles')
+      .select('roles(name)')
+      .eq('user_id', id)
+      .maybeSingle()
+
+    const currentRole = (targetRoleRow as any)?.roles?.name ?? null
 
     if (role === 'supervisor' && assignedLineId) {
       const { data: lineRow } = await supabaseAdmin
@@ -215,6 +223,51 @@ serve(async (req: Request) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
         })
+    }
+
+    const effectiveRole = role || currentRole
+    if (effectiveRole === 'admin') {
+      const finalPhone = actualPhone !== undefined ? (actualPhone || null) : targetProfile.phone
+      const finalEmail = actualEmail || targetProfile.email
+
+      const orFilters: string[] = []
+      if (finalPhone) orFilters.push(`phone.eq.${finalPhone}`)
+      if (finalEmail) orFilters.push(`email.eq.${finalEmail}`)
+
+      if (orFilters.length > 0) {
+        const { data: adminRoleForCheck } = await supabaseAdmin
+          .from('roles')
+          .select('id')
+          .eq('name', 'admin')
+          .maybeSingle()
+
+        if (adminRoleForCheck) {
+          const { data: candidateUsers } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .or(orFilters.join(','))
+            .neq('tenant_id', callerTenantId)
+            .neq('id', id)
+
+          if (candidateUsers?.length) {
+            const { data: adminLinks } = await supabaseAdmin
+              .from('user_roles')
+              .select('user_id')
+              .eq('role_id', adminRoleForCheck.id)
+              .in('user_id', candidateUsers.map((u: any) => u.id))
+
+            if (adminLinks?.length) {
+              return new Response(JSON.stringify({
+                error: 'هذا الرقم/البريد مسجل بالفعل كأدمن لشركة أخرى',
+                code: 'ADMIN_EXISTS_IN_ANOTHER_TENANT',
+              }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 400,
+              })
+            }
+          }
+        }
+      }
     }
 
     let normalizedJoinDate: string | null = null

@@ -151,6 +151,37 @@ serve(async (req: Request) => {
       })
     }
 
+    const { data: adminRoleForCheck } = await supabaseAdmin
+      .from('roles')
+      .select('id')
+      .eq('name', 'admin')
+      .maybeSingle()
+
+    if (adminRoleForCheck) {
+      const { data: candidateUsers } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .or(`phone.eq.${phone},email.eq.${email}`)
+
+      if (candidateUsers?.length) {
+        const { data: adminLinks } = await supabaseAdmin
+          .from('user_roles')
+          .select('user_id')
+          .eq('role_id', adminRoleForCheck.id)
+          .in('user_id', candidateUsers.map((u: any) => u.id))
+
+        if (adminLinks?.length) {
+          return new Response(JSON.stringify({
+            error: 'هذا الرقم/البريد مسجل بالفعل كأدمن لشركة أخرى',
+            code: 'ADMIN_EXISTS_IN_ANOTHER_TENANT',
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400,
+          })
+        }
+      }
+    }
+
     const { data: existingSlug } = await supabaseAdmin
       .from('tenants')
       .select('id')

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@presentation/state/useAuth";
-import { Building2, Loader2, ShieldAlert, Eye, EyeOff, MailCheck } from "lucide-react";
+import { Building2, Loader2, ShieldAlert, Eye, EyeOff, MailCheck, LogIn, ArrowLeft, User, Phone, Mail, Lock } from "lucide-react";
 import logoImage from "../../../assets/logo10.png";
 import backgroundImage from "../../../assets/background-imag.jpg";
 
@@ -100,6 +100,7 @@ export const RegisterPage = () => {
                   className="input auth-input"
                   placeholder="اسم شركتك"
                   type="text"
+                  dir="rtl"
                   value={companyName}
                   onChange={(event) => setCompanyName(event.target.value)}
                 />
@@ -109,10 +110,14 @@ export const RegisterPage = () => {
             <div className="auth-field">
               <label className="auth-label">الاسم الكامل</label>
               <div className="auth-input-wrap">
+                <span className="auth-input-icon">
+                  <User size={18} />
+                </span>
                 <input
                   className="input auth-input"
                   placeholder="اسمك بالكامل"
                   type="text"
+                  dir="rtl"
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
                 />
@@ -122,6 +127,9 @@ export const RegisterPage = () => {
             <div className="auth-field">
               <label className="auth-label">رقم الموبايل</label>
               <div className="auth-input-wrap">
+                <span className="auth-input-icon">
+                  <Phone size={18} />
+                </span>
                 <input
                   className="input auth-input ltr-input"
                   placeholder="01xxxxxxxxx"
@@ -136,6 +144,9 @@ export const RegisterPage = () => {
             <div className="auth-field">
               <label className="auth-label">البريد الإلكتروني</label>
               <div className="auth-input-wrap">
+                <span className="auth-input-icon">
+                  <Mail size={18} />
+                </span>
                 <input
                   className="input auth-input ltr-input"
                   placeholder="email@example.com"
@@ -173,6 +184,9 @@ export const RegisterPage = () => {
             <div className="auth-field">
               <label className="auth-label">تأكيد كلمة المرور</label>
               <div className="auth-input-wrap">
+                <span className="auth-input-icon">
+                  <Lock size={18} />
+                </span>
                 <input
                   className="input auth-input ltr-input"
                   type={showPassword ? "text" : "password"}
@@ -189,9 +203,16 @@ export const RegisterPage = () => {
             </button>
           </form>
 
-          <div className="auth-alt-link">
-            عندك حساب بالفعل؟ <Link to="/login">سجّل دخولك</Link>
-          </div>
+          <Link to="/login" className="auth-register-cta">
+            <span className="auth-register-cta-icon">
+              <LogIn size={20} />
+            </span>
+            <span className="auth-register-cta-text">
+              <span className="auth-register-cta-title">عندك حساب بالفعل؟</span>
+              <span className="auth-register-cta-subtitle">سجّل دخولك وكمّل شغلك على طول</span>
+            </span>
+            <ArrowLeft size={18} className="auth-register-cta-arrow" />
+          </Link>
 
           <div className="auth-footer">© 2026 Ensdim - جميع الحقوق محفوظة</div>
         </section>

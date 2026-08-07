@@ -27,6 +27,7 @@ class AppUser {
   bool get isSupervisor => role == AppRoles.supervisor;
   bool get isClient => role == AppRoles.client;
   bool get isTenantSuspended => tenantStatus == 'suspended';
+  bool get isTenantPending => tenantStatus == 'pending';
 
   @override
   String toString() => 'AppUser(id: $id, role: $role, name: $fullName)';

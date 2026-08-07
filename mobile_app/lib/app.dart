@@ -12,6 +12,7 @@ import 'package:ensdim_landscape/presentation/providers/auth_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/client_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/locale_provider.dart';
 import 'package:ensdim_landscape/presentation/providers/supervisor_provider.dart';
+import 'package:ensdim_landscape/presentation/screens/account_pending_approval_screen.dart';
 import 'package:ensdim_landscape/presentation/screens/account_suspended_screen.dart';
 import 'package:ensdim_landscape/presentation/screens/admin_not_supported_screen.dart';
 import 'package:ensdim_landscape/presentation/screens/client/client_first_login_setup_screen.dart';
@@ -246,6 +247,9 @@ class App extends StatelessWidget {
   Widget _buildHomeScreen(AppUser user) {
     if (user.isTenantSuspended) {
       return const AccountSuspendedScreen();
+    }
+    if (user.isTenantPending) {
+      return const AccountPendingApprovalScreen();
     }
 
     return switch (user.role) {

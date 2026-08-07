@@ -429,4 +429,9 @@ const Map<String, String> stringsEn = {
   'accountSuspendedTitle': 'Company temporarily suspended',
   'accountSuspendedMessage':
       'Your company\'s account is currently suspended. Please contact support for questions or to reactivate.',
+
+  // --- Company pending approval ---
+  'accountPendingTitle': 'Company approval pending',
+  'accountPendingMessage':
+      'Your company\'s account is still awaiting approval from the platform team before you can use the system. We\'ll notify you once it\'s activated.',
 };

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@presentation/state/useAuth";
-import { Mail, Loader2, ShieldAlert, Eye, EyeOff } from "lucide-react";
+import { Mail, Loader2, ShieldAlert, Eye, EyeOff, Building2, ArrowLeft } from "lucide-react";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit, formatLockoutTime } from "@core/security/rateLimiter";
 import { sanitizeIdentifier } from "@shared/utils/sanitize";
 import logoImage from "../../../assets/logo10.png";
@@ -138,9 +138,16 @@ export const LoginPage = () => {
             </button>
           </form>
 
-          <div className="auth-alt-link">
-            شركتك مش مسجلة عندنا؟ <Link to="/register">سجّل شركتك</Link>
-          </div>
+          <Link to="/register" className="auth-register-cta">
+            <span className="auth-register-cta-icon">
+              <Building2 size={20} />
+            </span>
+            <span className="auth-register-cta-text">
+              <span className="auth-register-cta-title">شركتك مش مسجلة عندنا؟</span>
+              <span className="auth-register-cta-subtitle">سجّل شركتك دلوقتي وابدأ في دقايق</span>
+            </span>
+            <ArrowLeft size={18} className="auth-register-cta-arrow" />
+          </Link>
 
           <div className="auth-footer">© 2026 Ensdim - جميع الحقوق محفوظة</div>
         </section>
