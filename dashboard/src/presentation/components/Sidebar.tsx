@@ -51,7 +51,7 @@ const sections: NavSection[] = [
   },
   {
     links: [
-      { to: "/admin/supervisors", label: "المشرفون", icon: UserCheck },
+      { to: "/admin/supervisors", label: "المشرفين/العمال", icon: UserCheck },
       { to: "/admin/fleet", label: "أسطول السيارات", icon: Car },
       { to: "/admin/phones", label: "هواتف الشركة", icon: Phone },
       { to: "/admin/workers", label: "العمالة", icon: HardHat },
