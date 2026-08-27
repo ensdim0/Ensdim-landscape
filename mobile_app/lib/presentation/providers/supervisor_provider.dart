@@ -11,6 +11,10 @@ import 'package:ensdim_landscape/domain/entities/visit.dart';
 import 'package:ensdim_landscape/domain/entities/visit_photo.dart';
 import 'package:ensdim_landscape/domain/entities/zone.dart';
 import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_assignee.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_item.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_photo.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_visit_result.dart';
 import 'package:ensdim_landscape/domain/repositories/supervisor_repository.dart';
 
 enum DataStatus { initial, loading, loaded, error }
@@ -79,6 +83,18 @@ class SupervisorProvider extends ChangeNotifier {
 
   bool _isLoadingStandaloneTasks = false;
   bool get isLoadingStandaloneTasks => _isLoadingStandaloneTasks;
+
+  List<StandaloneTaskAssignee> _standaloneTaskAssignees = [];
+  List<StandaloneTaskAssignee> get standaloneTaskAssignees => _standaloneTaskAssignees;
+
+  List<StandaloneTaskItem> _standaloneTaskItems = [];
+  List<StandaloneTaskItem> get standaloneTaskItems => _standaloneTaskItems;
+
+  List<StandaloneTaskPhoto> _standaloneTaskPhotos = [];
+  List<StandaloneTaskPhoto> get standaloneTaskPhotos => _standaloneTaskPhotos;
+
+  bool get standaloneTaskItemsAllCompleted =>
+      _standaloneTaskItems.every((item) => item.isCompleted);
 
   bool _isActionLoading = false;
   bool get isActionLoading => _isActionLoading;
@@ -638,6 +654,173 @@ class SupervisorProvider extends ChangeNotifier {
       _isActionLoading = false;
       notifyListeners();
       rethrow;
+    }
+  }
+
+  void _replaceStandaloneTaskLocally(StandaloneTask task) {
+    final index = _standaloneTasks.indexWhere((t) => t.id == task.id);
+    if (index != -1) _standaloneTasks[index] = task;
+  }
+
+  /// Loads a task's team, checklist and photos together — called when
+  /// opening its detail screen, and again on every realtime update while
+  /// that screen is open.
+  Future<void> loadStandaloneTaskDetails(String taskId) async {
+    try {
+      final results = await Future.wait([
+        _repository.listStandaloneTaskAssignees(taskId),
+        _repository.listStandaloneTaskItems(taskId),
+        _repository.listStandaloneTaskPhotos(taskId),
+      ]);
+      _standaloneTaskAssignees = results[0] as List<StandaloneTaskAssignee>;
+      _standaloneTaskItems = results[1] as List<StandaloneTaskItem>;
+      _standaloneTaskPhotos = results[2] as List<StandaloneTaskPhoto>;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Re-fetches the task itself plus its checklist — used on realtime
+  /// change notifications so all open devices reflect what a teammate just
+  /// did without a manual refresh.
+  Future<void> refreshStandaloneTask(String taskId) async {
+    try {
+      final results = await Future.wait([
+        _repository.getStandaloneTask(taskId),
+        _repository.listStandaloneTaskItems(taskId),
+      ]);
+      _replaceStandaloneTaskLocally(results[0] as StandaloneTask);
+      _standaloneTaskItems = results[1] as List<StandaloneTaskItem>;
+      notifyListeners();
+    } catch (_) {
+      // Best-effort background refresh — a transient failure here shouldn't
+      // surface an error banner over whatever the user is doing.
+    }
+  }
+
+  Future<bool> toggleStandaloneTaskItem({
+    required String itemId,
+    required bool completed,
+  }) async {
+    try {
+      final updated = await _repository.toggleStandaloneTaskItem(
+        itemId: itemId,
+        completed: completed,
+      );
+      final index = _standaloneTaskItems.indexWhere((i) => i.id == itemId);
+      if (index != -1) _standaloneTaskItems[index] = updated;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<StandaloneTaskVisitResult?> startStandaloneTaskVisit({
+    required String taskId,
+    double? gpsLat,
+    double? gpsLng,
+    List<String> photoPaths = const [],
+  }) async {
+    _isActionLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _repository.startStandaloneTaskVisit(
+        taskId: taskId,
+        gpsLat: gpsLat,
+        gpsLng: gpsLng,
+      );
+
+      if (result.success) {
+        for (final path in photoPaths) {
+          await _repository.uploadStandaloneTaskPhoto(
+            taskId: taskId,
+            phase: 'start',
+            filePath: path,
+          );
+        }
+        _standaloneTaskPhotos = await _repository.listStandaloneTaskPhotos(taskId);
+      }
+
+      _replaceStandaloneTaskLocally(result.task);
+      _isActionLoading = false;
+      notifyListeners();
+      return result;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isActionLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<StandaloneTaskVisitResult?> endStandaloneTaskVisit({
+    required String taskId,
+    double? gpsLat,
+    double? gpsLng,
+    List<String> photoPaths = const [],
+  }) async {
+    _isActionLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _repository.endStandaloneTaskVisit(
+        taskId: taskId,
+        gpsLat: gpsLat,
+        gpsLng: gpsLng,
+      );
+
+      if (result.success) {
+        for (final path in photoPaths) {
+          await _repository.uploadStandaloneTaskPhoto(
+            taskId: taskId,
+            phase: 'end',
+            filePath: path,
+          );
+        }
+        _standaloneTaskPhotos = await _repository.listStandaloneTaskPhotos(taskId);
+      }
+
+      _replaceStandaloneTaskLocally(result.task);
+      _isActionLoading = false;
+      notifyListeners();
+      return result;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isActionLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<StandaloneTaskPaymentResult?> confirmStandaloneTaskPayment({
+    required String taskId,
+    required String paymentMethod,
+    String? notes,
+  }) async {
+    _isActionLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _repository.confirmStandaloneTaskPayment(
+        taskId: taskId,
+        paymentMethod: paymentMethod,
+        notes: notes,
+      );
+      _replaceStandaloneTaskLocally(result.task);
+      _isActionLoading = false;
+      notifyListeners();
+      return result;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isActionLoading = false;
+      notifyListeners();
+      return null;
     }
   }
 

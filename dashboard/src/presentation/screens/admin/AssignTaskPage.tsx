@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { container } from "@infrastructure/di/container";
 import { useToast } from "@presentation/components/ToastProvider";
 import { CustomSelect } from "@presentation/components/CustomSelect";
+import { MultiSelect } from "@presentation/components/MultiSelect";
 import { User } from "@domain/entities/User";
 import { GeographicLine } from "@domain/entities/GeographicLine";
 import { Zone } from "@domain/entities/Zone";
@@ -14,6 +15,50 @@ const PAYMENT_METHOD_OPTIONS: { id: PaymentMethod; label: string }[] = [
   { id: "cheque", label: "شيك" },
   { id: "card", label: "ومض" },
 ];
+
+type WizardStep = 1 | 2 | 3 | 4;
+
+const STEP_TITLES: Record<WizardStep, string> = {
+  1: "المرحلة 1 من 4: العميل والعقد",
+  2: "المرحلة 2 من 4: بيانات المهمة",
+  3: "المرحلة 3 من 4: المشرفين والتاسكات",
+  4: "المرحلة 4 من 4: تفاصيل إضافية",
+};
+
+// The checklist entered at creation time. Ending the visit on the mobile
+// app is blocked until every item here is marked completed.
+const ChecklistBuilder: React.FC<{ items: string[]; onChange: (items: string[]) => void }> = ({ items, onChange }) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    {items.length === 0 && (
+      <div style={{ fontSize: "0.85rem", color: "var(--text-tertiary)" }}>لسه مفيش تاسكات — دوس "إضافة تاسك" لو عايز تضيف قائمة تتأشر أثناء الزيارة</div>
+    )}
+    {items.map((item, index) => (
+      <div key={index} style={{ display: "flex", gap: 8 }}>
+        <input
+          className="input"
+          value={item}
+          onChange={(event) => {
+            const next = [...items];
+            next[index] = event.target.value;
+            onChange(next);
+          }}
+          placeholder={`تاسك ${index + 1}`}
+        />
+        <button
+          type="button"
+          className="icon-button"
+          onClick={() => onChange(items.filter((_, i) => i !== index))}
+          style={{ width: 36, height: 36, background: "var(--bg-subtle)", border: "1px solid var(--color-border)", flexShrink: 0 }}
+        >
+          <X size={16} />
+        </button>
+      </div>
+    ))}
+    <button type="button" className="button secondary" onClick={() => onChange([...items, ""])} style={{ alignSelf: "flex-start" }}>
+      + إضافة تاسك
+    </button>
+  </div>
+);
 
 interface CreateStandaloneTaskModalProps {
   onClose: () => void;
@@ -32,6 +77,10 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
 }) => {
   const { notify } = useToast();
 
+  // When arriving from an existing contract, the client/contract step is
+  // already answered — the wizard starts on step 2 and never shows step 1.
+  const firstStep: WizardStep = initialContractId ? 2 : 1;
+
   const [clients, setClients] = useState<User[]>([]);
   const [supervisors, setSupervisors] = useState<User[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
@@ -39,7 +88,7 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<WizardStep>(firstStep);
   const [supervisorTouched, setSupervisorTouched] = useState(false);
 
   const [clientType, setClientType] = useState<"existing" | "new">("existing");
@@ -56,7 +105,8 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
   const [cost, setCost] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid">("unpaid");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
-  const [supervisorId, setSupervisorId] = useState("");
+  const [selectedSupervisorIds, setSelectedSupervisorIds] = useState<string[]>([]);
+  const [checklistItems, setChecklistItems] = useState<string[]>([]);
   const [status, setStatus] = useState("pending");
   const [notes, setNotes] = useState("");
 
@@ -148,7 +198,7 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
     if (!selectedLineId) return;
     if (supervisorTouched) return;
     const assignedSupervisor = supervisors.find((item) => item.assignedLineId === selectedLineId);
-    if (assignedSupervisor) setSupervisorId(assignedSupervisor.id);
+    if (assignedSupervisor) setSelectedSupervisorIds([assignedSupervisor.id]);
   }, [selectedLineId, supervisors, supervisorTouched]);
 
   useEffect(() => {
@@ -193,12 +243,22 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
     if (contract.zoneId) setSelectedZoneId(contract.zoneId);
   }, [selectedContractId, contracts]);
 
-  const handleStep1Validation = () => {
-    if (!title.trim()) {
-      notify("من فضلك أدخل اسم المهمة");
-      return;
+  const goNext = () => {
+    if (step === 2) {
+      if (!title.trim()) {
+        notify("من فضلك أدخل اسم المهمة");
+        return;
+      }
+      if (paymentStatus === "paid" && !paymentMethod) {
+        notify("من فضلك اختر طريقة الدفع");
+        return;
+      }
     }
-    setStep(2);
+    setStep((current) => (current < 4 ? ((current + 1) as WizardStep) : current));
+  };
+
+  const goBack = () => {
+    setStep((current) => (current > firstStep ? ((current - 1) as WizardStep) : current));
   };
 
   const handleSubmit = async (event?: React.FormEvent) => {
@@ -206,13 +266,13 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
 
     if (!title.trim()) {
       notify("من فضلك أدخل اسم المهمة");
-      setStep(1);
+      setStep(2);
       return;
     }
 
     if (paymentStatus === "paid" && !paymentMethod) {
       notify("من فضلك اختر طريقة الدفع");
-      setStep(1);
+      setStep(2);
       return;
     }
 
@@ -224,7 +284,6 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
         address: address.trim() || null,
         taskDate: taskDate || null,
         notes: notes.trim() || null,
-        supervisorId: supervisorId || null,
         status: status || "pending",
         contractId: selectedContractId || null,
         lineId: selectedLineId || null,
@@ -232,6 +291,8 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
         cost: cost ? Number.parseFloat(cost) : null,
         paymentStatus,
         paymentMethod: paymentStatus === "paid" ? paymentMethod : null,
+        supervisorIds: selectedSupervisorIds,
+        items: checklistItems,
       };
 
       if (initialContractId) {
@@ -312,9 +373,7 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
         >
           <div>
             <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "var(--text-primary)" }}>إنشاء مهمة جديدة</h3>
-            <p style={{ margin: "4px 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-              {step === 1 ? "المرحلة الأولى: بيانات العميل والمهمة" : "المرحلة الثانية: التفاصيل والمشرف"}
-            </p>
+            <p style={{ margin: "4px 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>{STEP_TITLES[step]}</p>
           </div>
           <button
             onClick={onClose}
@@ -326,7 +385,7 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
         </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-          {[1, 2].map((item) => (
+          {([1, 2, 3, 4] as WizardStep[]).map((item) => (
             <div
               key={item}
               style={{
@@ -342,89 +401,94 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
 
         <form
           onSubmit={
-            step === 1
-              ? (event) => {
+            step === 4
+              ? handleSubmit
+              : (event) => {
                   event.preventDefault();
-                  handleStep1Validation();
+                  goNext();
                 }
-              : handleSubmit
           }
           style={{ display: "flex", flexDirection: "column", gap: 12 }}
         >
-          {step === 1 ? (
-            <>
-              {!initialContractId && (
-                <div style={{ borderBottom: "1px solid var(--color-border)", paddingBottom: 16 }}>
-                  <strong style={{ display: "block", marginBottom: 12, fontSize: "0.95rem", color: "var(--text-primary)" }}>العميل</strong>
+          {step === 1 && !initialContractId && (
+            <div>
+              <strong style={{ display: "block", marginBottom: 12, fontSize: "0.95rem", color: "var(--text-primary)" }}>العميل</strong>
 
-                  <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.9rem" }}>
-                      <input
-                        type="radio"
-                        name="clientType"
-                        value="existing"
-                        checked={clientType === "existing"}
-                        onChange={() => setClientType("existing")}
-                      />
-                      <span>اختر من العملاء المسجلين</span>
-                    </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.9rem" }}>
-                      <input
-                        type="radio"
-                        name="clientType"
-                        value="new"
-                        checked={clientType === "new"}
-                        onChange={() => setClientType("new")}
-                      />
-                      <span>عميل جديد</span>
-                    </label>
-                  </div>
+              <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.9rem" }}>
+                  <input
+                    type="radio"
+                    name="clientType"
+                    value="existing"
+                    checked={clientType === "existing"}
+                    onChange={() => setClientType("existing")}
+                  />
+                  <span>اختر من العملاء المسجلين</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.9rem" }}>
+                  <input
+                    type="radio"
+                    name="clientType"
+                    value="new"
+                    checked={clientType === "new"}
+                    onChange={() => setClientType("new")}
+                  />
+                  <span>عميل جديد</span>
+                </label>
+              </div>
 
-                  {clientType === "existing" ? (
-                    <CustomSelect
-                      value={selectedClientId}
-                      onChange={(value) => setSelectedClientId(value as string)}
-                      options={[
-                        { id: "", label: "-- اختر عميل --" },
-                        ...clients.map((client) => ({ id: client.id, label: `${client.fullName} (${client.phone || "بدون هاتف"})` })),
-                      ]}
-                      placeholder="اختر عميل"
-                      width="100%"
-                      searchable
-                    />
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                      <input className="input" placeholder="اسم العميل" value={newClientName} onChange={(event) => setNewClientName(event.target.value)} />
-                      <input className="input" placeholder="هاتف العميل" value={newClientPhone} onChange={(event) => setNewClientPhone(event.target.value)} />
-                    </div>
-                  )}
-
-                  <div style={{ marginTop: 12 }}>
-                    <strong style={{ display: "block", marginBottom: 8, fontSize: "0.9rem", color: "var(--text-primary)" }}>ربط بعقد (اختياري)</strong>
-                    <CustomSelect
-                      value={selectedContractId}
-                      onChange={(value) => setSelectedContractId(value as string)}
-                      options={[
-                        { id: "", label: "-- لا يوجد عقد --" },
-                        ...(clientType === "existing" && selectedClientId
-                          ? contracts
-                              .filter((contract) => contract.clientId === selectedClientId)
-                              .map((contract) => ({
-                                id: contract.id,
-                                label: `${contract.code || contract.id} (${clients.find(c => c.id === contract.clientId)?.fullName || contract.contractUserName || "—"})`,
-                              }))
-                          : contracts.map((contract) => ({
-                              id: contract.id,
-                              label: `${contract.code || contract.id} (${clients.find(c => c.id === contract.clientId)?.fullName || contract.contractUserName || "—"})`,
-                            }))),
-                      ]}
-                      placeholder="اختر عقد"
-                      width="100%"
-                      searchable
-                    />
-                  </div>
+              {clientType === "existing" ? (
+                <CustomSelect
+                  value={selectedClientId}
+                  onChange={(value) => setSelectedClientId(value as string)}
+                  options={[
+                    { id: "", label: "-- اختر عميل --" },
+                    ...clients.map((client) => ({ id: client.id, label: `${client.fullName} (${client.phone || "بدون هاتف"})` })),
+                  ]}
+                  placeholder="اختر عميل"
+                  width="100%"
+                  searchable
+                />
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <input className="input" placeholder="اسم العميل" value={newClientName} onChange={(event) => setNewClientName(event.target.value)} />
+                  <input className="input" placeholder="هاتف العميل" value={newClientPhone} onChange={(event) => setNewClientPhone(event.target.value)} />
                 </div>
               )}
+
+              <div style={{ marginTop: 12 }}>
+                <strong style={{ display: "block", marginBottom: 8, fontSize: "0.9rem", color: "var(--text-primary)" }}>ربط بعقد (اختياري)</strong>
+                <CustomSelect
+                  value={selectedContractId}
+                  onChange={(value) => setSelectedContractId(value as string)}
+                  options={[
+                    { id: "", label: "-- لا يوجد عقد --" },
+                    ...(clientType === "existing" && selectedClientId
+                      ? contracts
+                          .filter((contract) => contract.clientId === selectedClientId)
+                          .map((contract) => ({
+                            id: contract.id,
+                            label: `${contract.code || contract.id} (${clients.find(c => c.id === contract.clientId)?.fullName || contract.contractUserName || "—"})`,
+                          }))
+                      : contracts.map((contract) => ({
+                          id: contract.id,
+                          label: `${contract.code || contract.id} (${clients.find(c => c.id === contract.clientId)?.fullName || contract.contractUserName || "—"})`,
+                        }))),
+                  ]}
+                  placeholder="اختر عقد"
+                  width="100%"
+                  searchable
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <>
+              <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>اسم المهمة</strong>
+                <input className="input" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="مثال: صيانة، فحص، تنظيف..." />
+              </label>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -452,19 +516,24 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
                 </label>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>العنوان</strong>
                   <input className="input" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="مثال: شارع 10، حي ..." />
                 </label>
 
                 <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>التكلفة (اختياري)</strong>
-                  <input className="input" type="number" step="0.01" value={cost} onChange={(event) => setCost(event.target.value)} placeholder="مثال: 12.50" />
+                  <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>تاريخ ووقت المهمة</strong>
+                  <input className="input" type="datetime-local" value={taskDate} onChange={(event) => setTaskDate(event.target.value)} />
                 </label>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: paymentStatus === "unpaid" ? "1fr" : "1fr 1fr", gap: 16, marginTop: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>التكلفة (اختياري)</strong>
+                  <input className="input" type="number" step="0.01" value={cost} onChange={(event) => setCost(event.target.value)} placeholder="مثال: 12.50" />
+                </label>
+
                 <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>حالة الدفع</strong>
                   <CustomSelect
@@ -478,66 +547,66 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
                     width="100%"
                   />
                 </label>
-
-                {paymentStatus === "paid" && (
-                  <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>طريقة الدفع</strong>
-                    <CustomSelect
-                      value={paymentMethod}
-                      onChange={(value) => setPaymentMethod(value as PaymentMethod)}
-                      options={PAYMENT_METHOD_OPTIONS}
-                      placeholder="اختر طريقة الدفع"
-                      width="100%"
-                    />
-                  </label>
-                )}
               </div>
 
-              <label style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
-                <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>اسم المهمة</strong>
-                <input className="input" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="مثال: صيانة، فحص، تنظيف..." />
+              {paymentStatus === "paid" && (
+                <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>طريقة الدفع</strong>
+                  <CustomSelect
+                    value={paymentMethod}
+                    onChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                    options={PAYMENT_METHOD_OPTIONS}
+                    placeholder="اختر طريقة الدفع"
+                    width="100%"
+                  />
+                </label>
+              )}
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>المشرفون المسؤولون</strong>
+                <MultiSelect
+                  groups={[
+                    { label: "المشرفين", options: supervisors.map((supervisor) => ({ id: supervisor.id, label: supervisor.fullName })) },
+                  ]}
+                  selectedIds={selectedSupervisorIds}
+                  onToggle={(id) => {
+                    setSupervisorTouched(true);
+                    setSelectedSupervisorIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+                  }}
+                  placeholder="اختر مشرف أو أكثر"
+                  width="100%"
+                  searchable
+                />
+              </label>
+
+              <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>تاسكات المهمة (اختياري)</strong>
+                <ChecklistBuilder items={checklistItems} onChange={setChecklistItems} />
               </label>
             </>
-          ) : (
+          )}
+
+          {step === 4 && (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
-                <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>تاريخ ووقت المهمة</strong>
-                  <input className="input" type="datetime-local" value={taskDate} onChange={(event) => setTaskDate(event.target.value)} />
-                </label>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>المشرف المسؤول</strong>
-                  <CustomSelect
-                    value={supervisorId}
-                    onChange={(value) => {
-                      setSupervisorId(value as string);
-                      setSupervisorTouched(true);
-                    }}
-                    options={[{ id: "", label: "-- اختر مشرف --" }, ...supervisors.map((supervisor) => ({ id: supervisor.id, label: supervisor.fullName }))]}
-                    placeholder="اختر مشرف"
-                    width="100%"
-                  />
-                </label>
-
-                <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>حالة المهمة</strong>
-                  <CustomSelect
-                    value={status}
-                    onChange={(value) => setStatus(value as string)}
-                    options={[
-                      { id: "pending", label: "قيد الانتظار" },
-                      { id: "in_progress", label: "جاري التنفيذ" },
-                      { id: "completed", label: "مكتملة" },
-                      { id: "cancelled", label: "ملغاة" },
-                    ]}
-                    placeholder="اختر الحالة"
-                    width="100%"
-                  />
-                </label>
-              </div>
+              <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>حالة المهمة</strong>
+                <CustomSelect
+                  value={status}
+                  onChange={(value) => setStatus(value as string)}
+                  options={[
+                    { id: "pending", label: "قيد الانتظار" },
+                    { id: "in_progress", label: "جاري التنفيذ" },
+                    { id: "completed", label: "مكتملة" },
+                    { id: "cancelled", label: "ملغاة" },
+                  ]}
+                  placeholder="اختر الحالة"
+                  width="100%"
+                />
+              </label>
 
               <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <strong style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>وصف المهمة</strong>
@@ -574,13 +643,13 @@ export const CreateStandaloneTaskModal: React.FC<CreateStandaloneTaskModalProps>
               borderTop: "1px solid var(--color-border)",
             }}
           >
-            {step === 2 && (
-              <button className="button secondary" type="button" onClick={() => setStep(1)}>
+            {step > firstStep && (
+              <button className="button secondary" type="button" onClick={goBack}>
                 الرجوع
               </button>
             )}
-            <button className="button primary" type="submit" disabled={submitting || title.trim() === ""}>
-              {step === 1 ? (
+            <button className="button primary" type="submit" disabled={submitting}>
+              {step < 4 ? (
                 <>
                   التالي <ChevronRight size={16} style={{ marginLeft: 4 }} />
                 </>

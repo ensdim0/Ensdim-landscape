@@ -9,7 +9,7 @@ import { ContractType } from "@domain/entities/ContractType";
 import { ContractTerm } from "@domain/entities/ContractTerm";
 import { Visit } from "@domain/entities/Visit";
 import { ContractPayment, PaymentMethod } from "@domain/entities/ContractPayment";
-import { StandaloneTask } from "@domain/entities/StandaloneTask";
+import { StandaloneTask, StandaloneTaskAssignee, StandaloneTaskItem, StandaloneTaskPhoto } from "@domain/entities/StandaloneTask";
 import { StandaloneTaskPayment } from "@domain/entities/StandaloneTaskPayment";
 import { CompanyExpense, CompanyExpenseCategory } from "@domain/entities/CompanyExpense";
 import { ExpenseSection } from "@domain/entities/ExpenseSection";
@@ -1150,7 +1150,83 @@ export class SupabaseAdminRepository implements AdminRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at ?? null,
       deletedAt: row.deleted_at ?? null,
+      visitStartedAt: row.visit_started_at ?? null,
+      visitStartedLat: row.visit_started_lat != null ? Number(row.visit_started_lat) : null,
+      visitStartedLng: row.visit_started_lng != null ? Number(row.visit_started_lng) : null,
+      startedBy: row.started_by ?? null,
+      visitEndedAt: row.visit_ended_at ?? null,
+      visitEndedLat: row.visit_ended_lat != null ? Number(row.visit_ended_lat) : null,
+      visitEndedLng: row.visit_ended_lng != null ? Number(row.visit_ended_lng) : null,
+      endedBy: row.ended_by ?? null,
+      paymentConfirmedAt: row.payment_confirmed_at ?? null,
+      paymentConfirmedBy: row.payment_confirmed_by ?? null,
     } as StandaloneTask;
+  }
+
+  private mapStandaloneTaskAssignee(row: any): StandaloneTaskAssignee {
+    return {
+      id: row.id,
+      taskId: row.task_id,
+      supervisorId: row.supervisor_id ?? null,
+      workerId: row.worker_id ?? null,
+      createdAt: row.created_at,
+    };
+  }
+
+  async listStandaloneTaskAssignees(taskId: string): Promise<StandaloneTaskAssignee[]> {
+    const { data, error } = await supabase
+      .from("standalone_task_assignees")
+      .select("*")
+      .eq("task_id", taskId);
+    if (error) throw error;
+    return (data ?? []).map((row: any) => this.mapStandaloneTaskAssignee(row));
+  }
+
+  private mapStandaloneTaskItem(row: any): StandaloneTaskItem {
+    return {
+      id: row.id,
+      taskId: row.task_id,
+      title: row.title,
+      status: row.status,
+      sortOrder: row.sort_order ?? 0,
+      completedBy: row.completed_by ?? null,
+      completedAt: row.completed_at ?? null,
+      createdAt: row.created_at,
+    };
+  }
+
+  async listStandaloneTaskItems(taskId: string): Promise<StandaloneTaskItem[]> {
+    const { data, error } = await supabase
+      .from("standalone_task_items")
+      .select("*")
+      .eq("task_id", taskId)
+      .order("sort_order", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map((row: any) => this.mapStandaloneTaskItem(row));
+  }
+
+  async listStandaloneTaskPhotos(taskId: string): Promise<StandaloneTaskPhoto[]> {
+    const { data, error } = await supabase
+      .from("standalone_task_photos")
+      .select("*")
+      .eq("task_id", taskId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+
+    return await Promise.all(
+      (data ?? []).map(async (row: any) => {
+        const photoUrl = await this.resolveTaskPhotoUrl(row.photo_path);
+        return {
+          id: row.id,
+          taskId: row.task_id,
+          phase: row.phase,
+          photoPath: row.photo_path,
+          photoUrl,
+          uploadedBy: row.uploaded_by ?? null,
+          createdAt: row.created_at,
+        } as StandaloneTaskPhoto;
+      })
+    );
   }
 
   async listStandaloneTasks(): Promise<StandaloneTask[]> {
@@ -1189,7 +1265,17 @@ export class SupabaseAdminRepository implements AdminRepository {
     cost?: number | null;
     paymentStatus?: string;
     paymentMethod?: string | null;
+    supervisorIds?: string[];
+    workerIds?: string[];
+    items?: string[];
   }): Promise<StandaloneTask> {
+    // supervisorId stays as the legacy/primary-supervisor reference; the
+    // team itself lives in standalone_task_assignees (see
+    // 2026-08-26_standalone_task_teams.sql). If the caller only picked a
+    // team and left the legacy field empty, default it to the first chosen
+    // supervisor so older code paths that still read supervisor_id keep working.
+    const primarySupervisorId = payload.supervisorId ?? payload.supervisorIds?.[0] ?? null;
+
     const { data, error } = await supabase
       .from("standalone_tasks")
       .insert({
@@ -1199,7 +1285,7 @@ export class SupabaseAdminRepository implements AdminRepository {
         client_id: payload.clientId ?? null,
         client_name: payload.clientName ?? null,
         client_phone: payload.clientPhone ?? null,
-        supervisor_id: payload.supervisorId ?? null,
+        supervisor_id: primarySupervisorId,
         task_date: payload.taskDate,
         notes: payload.notes ?? null,
         status: payload.status ?? 'pending',
@@ -1213,6 +1299,25 @@ export class SupabaseAdminRepository implements AdminRepository {
       .select("*")
       .single();
     if (error) throw error;
+
+    const supervisorIds = [...new Set(payload.supervisorIds ?? [])];
+    const workerIds = [...new Set(payload.workerIds ?? [])];
+    const assigneeRows = [
+      ...supervisorIds.map((supervisorId) => ({ task_id: data.id, supervisor_id: supervisorId })),
+      ...workerIds.map((workerId) => ({ task_id: data.id, worker_id: workerId })),
+    ];
+    if (assigneeRows.length > 0) {
+      const { error: assigneesError } = await supabase.from("standalone_task_assignees").insert(assigneeRows);
+      if (assigneesError) throw assigneesError;
+    }
+
+    const items = (payload.items ?? []).map((title) => title.trim()).filter(Boolean);
+    if (items.length > 0) {
+      const itemRows = items.map((title, index) => ({ task_id: data.id, title, sort_order: index }));
+      const { error: itemsError } = await supabase.from("standalone_task_items").insert(itemRows);
+      if (itemsError) throw itemsError;
+    }
+
     return this.mapStandaloneTask(data);
   }
 

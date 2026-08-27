@@ -8,7 +8,7 @@ import { Visit } from "@domain/entities/Visit";
 import { ContractPayment, PaymentMethod } from "@domain/entities/ContractPayment";
 import { ContractStatus } from "@domain/entities/Contract";
 import { ContractPalmInfo } from "@domain/entities/Contract";
-import { StandaloneTask } from "@domain/entities/StandaloneTask";
+import { StandaloneTask, StandaloneTaskAssignee, StandaloneTaskItem, StandaloneTaskPhoto } from "@domain/entities/StandaloneTask";
 import { StandaloneTaskPayment } from "@domain/entities/StandaloneTaskPayment";
 import { CompanyExpense, CompanyExpenseCategory } from "@domain/entities/CompanyExpense";
 import { ExpenseSection } from "@domain/entities/ExpenseSection";
@@ -151,8 +151,14 @@ export interface AdminRepository {
   // Standalone tasks (not tied to contracts)
   listStandaloneTasks(): Promise<StandaloneTask[]>;
   listStandaloneTasksByContract(contractId: string): Promise<StandaloneTask[]>;
-  createStandaloneTask(payload: { title: string; description?: string | null; address?: string | null; clientId?: string | null; clientName?: string | null; clientPhone?: string | null; taskDate: string; notes?: string | null; supervisorId?: string | null; contractId?: string | null; lineId?: string | null; zoneId?: string | null; cost?: number | null; status?: string; paymentStatus?: string; paymentMethod?: string | null }): Promise<StandaloneTask>;
+  createStandaloneTask(payload: { title: string; description?: string | null; address?: string | null; clientId?: string | null; clientName?: string | null; clientPhone?: string | null; taskDate: string; notes?: string | null; supervisorId?: string | null; contractId?: string | null; lineId?: string | null; zoneId?: string | null; cost?: number | null; status?: string; paymentStatus?: string; paymentMethod?: string | null; supervisorIds?: string[]; workerIds?: string[]; items?: string[] }): Promise<StandaloneTask>;
   updateStandaloneTask(id: string, payload: { title?: string; description?: string | null; address?: string | null; clientId?: string | null; clientName?: string | null; clientPhone?: string | null; supervisorId?: string | null; taskDate?: string; notes?: string | null; supervisorReport?: string | null; status?: string; contractId?: string | null; lineId?: string | null; zoneId?: string | null; cost?: number | null; paymentStatus?: string; paymentMethod?: string | null }): Promise<StandaloneTask>;
   updateStandaloneTaskStatus(id: string, status: string): Promise<StandaloneTask>;
   deleteStandaloneTask(id: string): Promise<void>;
+
+  // Team, checklist and visit photos for a standalone task (observability
+  // in the dashboard — creation happens as part of createStandaloneTask).
+  listStandaloneTaskAssignees(taskId: string): Promise<StandaloneTaskAssignee[]>;
+  listStandaloneTaskItems(taskId: string): Promise<StandaloneTaskItem[]>;
+  listStandaloneTaskPhotos(taskId: string): Promise<StandaloneTaskPhoto[]>;
 }

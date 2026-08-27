@@ -28,6 +28,9 @@ dashboard/supabase/.temp/
 *.pem
 *.key
 
+# Emergency handover doc (contains account passwords) — never push to GitHub
+/ensdim/
+
 # IDEs
 .vscode/
 .idea/

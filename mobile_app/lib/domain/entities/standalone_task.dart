@@ -19,6 +19,18 @@ class StandaloneTask {
   final String status; // pending, in_progress, completed, cancelled
   final String createdAt;
   final String? updatedAt;
+  final String paymentStatus; // 'unpaid' | 'paid'
+  final String? paymentMethod;
+  final String? visitStartedAt;
+  final double? visitStartedLat;
+  final double? visitStartedLng;
+  final String? startedBy;
+  final String? visitEndedAt;
+  final double? visitEndedLat;
+  final double? visitEndedLng;
+  final String? endedBy;
+  final String? paymentConfirmedAt;
+  final String? paymentConfirmedBy;
 
   const StandaloneTask({
     required this.id,
@@ -41,6 +53,18 @@ class StandaloneTask {
     required this.status,
     required this.createdAt,
     this.updatedAt,
+    this.paymentStatus = 'unpaid',
+    this.paymentMethod,
+    this.visitStartedAt,
+    this.visitStartedLat,
+    this.visitStartedLng,
+    this.startedBy,
+    this.visitEndedAt,
+    this.visitEndedLat,
+    this.visitEndedLng,
+    this.endedBy,
+    this.paymentConfirmedAt,
+    this.paymentConfirmedBy,
   });
 
   factory StandaloneTask.fromJson(Map<String, dynamic> json) {
@@ -67,6 +91,18 @@ class StandaloneTask {
       status: json['status'] as String? ?? 'pending',
       createdAt: json['created_at'] as String,
       updatedAt: json['updated_at'] as String?,
+      paymentStatus: json['payment_status'] as String? ?? 'unpaid',
+      paymentMethod: json['payment_method'] as String?,
+      visitStartedAt: json['visit_started_at'] as String?,
+      visitStartedLat: (json['visit_started_lat'] as num?)?.toDouble(),
+      visitStartedLng: (json['visit_started_lng'] as num?)?.toDouble(),
+      startedBy: json['started_by'] as String?,
+      visitEndedAt: json['visit_ended_at'] as String?,
+      visitEndedLat: (json['visit_ended_lat'] as num?)?.toDouble(),
+      visitEndedLng: (json['visit_ended_lng'] as num?)?.toDouble(),
+      endedBy: json['ended_by'] as String?,
+      paymentConfirmedAt: json['payment_confirmed_at'] as String?,
+      paymentConfirmedBy: json['payment_confirmed_by'] as String?,
     );
   }
 
@@ -91,6 +127,18 @@ class StandaloneTask {
     String? status,
     String? createdAt,
     String? updatedAt,
+    String? paymentStatus,
+    String? paymentMethod,
+    String? visitStartedAt,
+    double? visitStartedLat,
+    double? visitStartedLng,
+    String? startedBy,
+    String? visitEndedAt,
+    double? visitEndedLat,
+    double? visitEndedLng,
+    String? endedBy,
+    String? paymentConfirmedAt,
+    String? paymentConfirmedBy,
   }) {
     return StandaloneTask(
       id: id ?? this.id,
@@ -113,6 +161,18 @@ class StandaloneTask {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      visitStartedAt: visitStartedAt ?? this.visitStartedAt,
+      visitStartedLat: visitStartedLat ?? this.visitStartedLat,
+      visitStartedLng: visitStartedLng ?? this.visitStartedLng,
+      startedBy: startedBy ?? this.startedBy,
+      visitEndedAt: visitEndedAt ?? this.visitEndedAt,
+      visitEndedLat: visitEndedLat ?? this.visitEndedLat,
+      visitEndedLng: visitEndedLng ?? this.visitEndedLng,
+      endedBy: endedBy ?? this.endedBy,
+      paymentConfirmedAt: paymentConfirmedAt ?? this.paymentConfirmedAt,
+      paymentConfirmedBy: paymentConfirmedBy ?? this.paymentConfirmedBy,
     );
   }
 }

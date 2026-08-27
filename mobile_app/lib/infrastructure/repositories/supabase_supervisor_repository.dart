@@ -13,6 +13,10 @@ import 'package:ensdim_landscape/domain/entities/visit.dart';
 import 'package:ensdim_landscape/domain/entities/visit_photo.dart';
 import 'package:ensdim_landscape/domain/entities/zone.dart';
 import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_assignee.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_item.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_photo.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_visit_result.dart';
 import 'package:ensdim_landscape/domain/repositories/supervisor_repository.dart';
 
 class SupabaseSupervisorRepository implements SupervisorRepository {
@@ -511,10 +515,12 @@ class SupabaseSupervisorRepository implements SupervisorRepository {
         .where((t) => t['status'] != 'pending')
         .length;
 
+    // RLS scopes this to the caller's team-assigned tasks (see
+    // listAssignedStandaloneTasks), which also covers tasks where the
+    // caller is a team member but not the legacy primary supervisor_id.
     final standaloneTasks = await _client
         .from('standalone_tasks')
-        .select('id, status, task_date')
-        .eq('supervisor_id', _userId);
+        .select('id, status, task_date');
     final standaloneTasksToday = (standaloneTasks as List)
         .where((t) => isToday(t['task_date']?.toString()))
         .toList();
@@ -612,13 +618,13 @@ class SupabaseSupervisorRepository implements SupervisorRepository {
 
   @override
   Future<List<StandaloneTask>> listAssignedStandaloneTasks() async {
-    final user = _client.auth.currentUser;
-    if (user == null) throw Exception('No authenticated user');
-
+    // RLS (supervisor_view_assigned_tasks) already restricts this to tasks
+    // whose team (standalone_task_assignees) includes the caller — no
+    // client-side filter needed, and this also covers team members who
+    // aren't the legacy "primary" supervisor_id.
     final response = await _client
         .from('standalone_tasks')
         .select()
-        .eq('supervisor_id', user.id)
         .order('task_date', ascending: true);
 
     final rows = (response as List).whereType<Map>().toList();
@@ -693,12 +699,173 @@ class SupabaseSupervisorRepository implements SupervisorRepository {
         .from('standalone_tasks')
         .update(updates)
         .eq('id', taskId)
-        .eq('supervisor_id', _userId)
         .select()
         .single();
 
     return StandaloneTask.fromJson(response);
-  } // â”€â”€â”€â”€â”€ Mappers â”€â”€â”€â”€â”€
+  }
+
+  @override
+  Future<List<StandaloneTaskAssignee>> listStandaloneTaskAssignees(String taskId) async {
+    final rows = await _client
+        .from('standalone_task_assignees')
+        .select()
+        .eq('task_id', taskId);
+
+    return (rows as List)
+        .map((r) => StandaloneTaskAssignee.fromJson(Map<String, dynamic>.from(r as Map)))
+        .toList();
+  }
+
+  @override
+  Future<List<StandaloneTaskItem>> listStandaloneTaskItems(String taskId) async {
+    final rows = await _client
+        .from('standalone_task_items')
+        .select()
+        .eq('task_id', taskId)
+        .order('sort_order');
+
+    return (rows as List)
+        .map((r) => StandaloneTaskItem.fromJson(Map<String, dynamic>.from(r as Map)))
+        .toList();
+  }
+
+  @override
+  Future<StandaloneTaskItem> toggleStandaloneTaskItem({
+    required String itemId,
+    required bool completed,
+  }) async {
+    final updates = completed
+        ? {
+            'status': 'completed',
+            'completed_by': _userId,
+            'completed_at': DateTime.now().toUtc().toIso8601String(),
+          }
+        : {'status': 'pending', 'completed_by': null, 'completed_at': null};
+
+    final row = await _client
+        .from('standalone_task_items')
+        .update(updates)
+        .eq('id', itemId)
+        .select()
+        .single();
+
+    return StandaloneTaskItem.fromJson(row);
+  }
+
+  @override
+  Future<List<StandaloneTaskPhoto>> listStandaloneTaskPhotos(String taskId) async {
+    final rows = await _client
+        .from('standalone_task_photos')
+        .select()
+        .eq('task_id', taskId)
+        .order('created_at');
+
+    return Future.wait((rows as List).map((r) async {
+      final row = Map<String, dynamic>.from(r as Map);
+      final photoPath = row['photo_path'] as String;
+      final url = await _resolveVisitPhotoUrl(photoPath);
+      return StandaloneTaskPhoto(
+        id: row['id'] as String,
+        taskId: row['task_id'] as String,
+        phase: row['phase'] as String,
+        photoPath: photoPath,
+        photoUrl: url,
+      );
+    }));
+  }
+
+  @override
+  Future<void> uploadStandaloneTaskPhoto({
+    required String taskId,
+    required String phase,
+    required String filePath,
+  }) async {
+    final file = File(filePath);
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${file.uri.pathSegments.last}';
+    final storagePath = 'standalone-task-photos/$taskId/$phase/$fileName';
+
+    await _client.storage.from('task-photos').upload(storagePath, file);
+
+    await _client.from('standalone_task_photos').insert({
+      'task_id': taskId,
+      'phase': phase,
+      'photo_path': storagePath,
+      'uploaded_by': _userId,
+    });
+  }
+
+  @override
+  Future<StandaloneTaskVisitResult> startStandaloneTaskVisit({
+    required String taskId,
+    double? gpsLat,
+    double? gpsLng,
+  }) async {
+    final response = await _client.rpc(
+      'start_standalone_task_visit',
+      params: {'p_task_id': taskId, 'p_lat': gpsLat, 'p_lng': gpsLng},
+    );
+
+    final rows = (response as List).whereType<Map>().toList();
+    if (rows.isEmpty) {
+      throw Exception('Task not found or not accessible');
+    }
+
+    final success = rows.first['started'] == true;
+    final task = await getStandaloneTask(taskId);
+    return StandaloneTaskVisitResult(success: success, task: task);
+  }
+
+  @override
+  Future<StandaloneTaskVisitResult> endStandaloneTaskVisit({
+    required String taskId,
+    double? gpsLat,
+    double? gpsLng,
+  }) async {
+    final response = await _client.rpc(
+      'end_standalone_task_visit',
+      params: {'p_task_id': taskId, 'p_lat': gpsLat, 'p_lng': gpsLng},
+    );
+
+    final rows = (response as List).whereType<Map>().toList();
+    if (rows.isEmpty) {
+      throw Exception('Task not found or not accessible');
+    }
+
+    final row = rows.first;
+    final success = row['ended'] == true;
+    final reason = row['reason'] as String?;
+    final task = await getStandaloneTask(taskId);
+    return StandaloneTaskVisitResult(success: success, task: task, reason: reason);
+  }
+
+  @override
+  Future<StandaloneTaskPaymentResult> confirmStandaloneTaskPayment({
+    required String taskId,
+    required String paymentMethod,
+    String? notes,
+  }) async {
+    final response = await _client.rpc(
+      'confirm_standalone_task_payment',
+      params: {
+        'p_task_id': taskId,
+        'p_payment_method': paymentMethod,
+        'p_notes': notes,
+      },
+    );
+
+    final rows = (response as List).whereType<Map>().toList();
+    if (rows.isEmpty) {
+      throw Exception('Task not found or not accessible');
+    }
+
+    final success = rows.first['confirmed'] == true;
+    final task = await getStandaloneTask(taskId);
+    return StandaloneTaskPaymentResult(success: success, task: task);
+  }
+
+  // â”€â”€â”€â”€â”€ Mappers â”€â”€â”€â”€â”€
 
   GeographicLine _mapLine(Map<String, dynamic> row) => GeographicLine(
     id: row['id'] as String,

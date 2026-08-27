@@ -10,6 +10,10 @@ import 'package:ensdim_landscape/domain/entities/visit.dart';
 import 'package:ensdim_landscape/domain/entities/visit_photo.dart';
 import 'package:ensdim_landscape/domain/entities/zone.dart';
 import 'package:ensdim_landscape/domain/entities/standalone_task.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_assignee.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_item.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_photo.dart';
+import 'package:ensdim_landscape/domain/entities/standalone_task_visit_result.dart';
 
 /// Contract for all supervisor-specific data operations.
 /// Implementations should respect RLS — only data for the
@@ -137,12 +141,60 @@ abstract class SupervisorRepository {
   /// Get a single standalone task by ID.
   Future<StandaloneTask> getStandaloneTask(String taskId);
 
-  /// Update a standalone task status (pending → in_progress → completed/cancelled).
+  /// Update a standalone task status. Used only for cancelling a task
+  /// (pending/in_progress → cancelled) — starting, ending and payment
+  /// confirmation go through their own atomic RPCs below.
   /// If [supervisorReport] is provided it will be saved to the task and available to admins.
   Future<StandaloneTask> updateStandaloneTaskStatus({
     required String taskId,
     required String status,
     String? supervisorReport,
+  });
+
+  /// Team members assigned to a standalone task.
+  Future<List<StandaloneTaskAssignee>> listStandaloneTaskAssignees(String taskId);
+
+  /// Checklist items for a standalone task.
+  Future<List<StandaloneTaskItem>> listStandaloneTaskItems(String taskId);
+
+  /// Toggle a single checklist item's completion.
+  Future<StandaloneTaskItem> toggleStandaloneTaskItem({
+    required String itemId,
+    required bool completed,
+  });
+
+  /// Photos already uploaded for a standalone task's visit (start/end).
+  Future<List<StandaloneTaskPhoto>> listStandaloneTaskPhotos(String taskId);
+
+  /// Upload an optional start/end visit photo for a standalone task.
+  Future<void> uploadStandaloneTaskPhoto({
+    required String taskId,
+    required String phase, // 'start' | 'end'
+    required String filePath,
+  });
+
+  /// Start the on-site visit for a standalone task. Atomic — if another team
+  /// member already started it, [StandaloneTaskVisitResult.success] is false
+  /// and [StandaloneTaskVisitResult.task] carries who actually started it.
+  Future<StandaloneTaskVisitResult> startStandaloneTaskVisit({
+    required String taskId,
+    double? gpsLat,
+    double? gpsLng,
+  });
+
+  /// End the on-site visit. Fails (success=false, reason set) unless the
+  /// visit is currently in progress and every checklist item is completed.
+  Future<StandaloneTaskVisitResult> endStandaloneTaskVisit({
+    required String taskId,
+    double? gpsLat,
+    double? gpsLng,
+  });
+
+  /// Confirm the client paid for a standalone task, closing it.
+  Future<StandaloneTaskPaymentResult> confirmStandaloneTaskPayment({
+    required String taskId,
+    required String paymentMethod, // 'cash' | 'transfer'
+    String? notes,
   });
 }
 

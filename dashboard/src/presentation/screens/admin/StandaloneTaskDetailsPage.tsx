@@ -3,10 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { container } from "@infrastructure/di/container";
 import { useToast } from "@presentation/components/ToastProvider";
 import { CustomSelect } from "@presentation/components/CustomSelect";
-import { StandaloneTask } from "@domain/entities/StandaloneTask";
+import { StandaloneTask, StandaloneTaskAssignee, StandaloneTaskItem, StandaloneTaskPhoto } from "@domain/entities/StandaloneTask";
 import { PaymentMethod } from "@domain/entities/ContractPayment";
 import { User } from "@domain/entities/User";
-import { X, FileText } from "lucide-react";
+import { Worker } from "@domain/entities/Worker";
+import { X, FileText, CheckCircle2, Circle, MapPin, Users, Clock, StickyNote } from "lucide-react";
 import { formatDateTime } from "@shared/utils/date";
 import { useTour } from "@presentation/components/tour/useTour";
 
@@ -16,6 +17,13 @@ const PAYMENT_METHOD_OPTIONS: { id: PaymentMethod; label: string }[] = [
   { id: "cheque",  label: "شيك"       },
   { id: "card",    label: "ومض"       },
   { id: "gateway", label: "UPayments" },
+];
+
+const DETAIL_TABS: { key: "basic" | "team" | "visit" | "notes"; label: string; icon: React.ComponentType<{ size?: number | string }> }[] = [
+  { key: "basic", label: "البيانات الأساسية", icon: FileText },
+  { key: "team", label: "الفريق والتاسكات", icon: Users },
+  { key: "visit", label: "الزيارة والدفع", icon: Clock },
+  { key: "notes", label: "الملاحظات", icon: StickyNote },
 ];
 
 const toDateTimeLocalValue = (value?: string | null) => {
@@ -41,9 +49,13 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<StandaloneTask | null>(null);
   const [supervisors, setSupervisors] = useState<User[]>([]);
+  const [workers, setWorkers] = useState<Worker[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
   const [lines, setLines] = useState<any[]>([]);
   const [zones, setZones] = useState<any[]>([]);
+  const [assignees, setAssignees] = useState<StandaloneTaskAssignee[]>([]);
+  const [taskItems, setTaskItems] = useState<StandaloneTaskItem[]>([]);
+  const [taskPhotos, setTaskPhotos] = useState<StandaloneTaskPhoto[]>([]);
 
   // form state
   const [title, setTitle] = useState("");
@@ -63,6 +75,7 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
   const [showFullReport, setShowFullReport] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid">("unpaid");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [activeTab, setActiveTab] = useState<"basic" | "team" | "visit" | "notes">("basic");
 
   useEffect(() => {
     let mounted = true;
@@ -75,17 +88,25 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
         const found = tasks.find((t) => t.id === taskIdToUse);
         if (!found) throw new Error("المهمة غير موجودة");
 
-        const [sups, ctrs, lns] = await Promise.all([
+        const [sups, wrks, ctrs, lns, taskAssignees, items, photos] = await Promise.all([
           container.adminRepository.listSupervisors(),
+          container.workerRepository.listWorkers().catch(() => [] as Worker[]),
           container.adminRepository.listContracts(),
           container.lineRepository.listLines(),
+          container.adminRepository.listStandaloneTaskAssignees(taskIdToUse),
+          container.adminRepository.listStandaloneTaskItems(taskIdToUse),
+          container.adminRepository.listStandaloneTaskPhotos(taskIdToUse),
         ]);
 
         if (!mounted) return;
         setTask(found);
         setSupervisors(sups);
+        setWorkers(wrks);
         setContracts(ctrs);
         setLines(lns);
+        setAssignees(taskAssignees);
+        setTaskItems(items);
+        setTaskPhotos(photos);
 
         setTitle(found.title);
         setDescription(found.description || "");
@@ -183,7 +204,14 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
 
     applyContractLocation();
     return () => { mounted = false; };
-  }, [contractId, contracts, supervisors, supervisorTouched]);
+    // Deliberately excludes `contracts`/`supervisors`: they're only ever
+    // populated once (on load) and never change afterwards, but including
+    // them here made this effect re-fire the instant that initial load
+    // resolved — wiping lineId/zoneId (which the load effect had just set
+    // from the task's saved values) back to null for any task with no
+    // linked contract, since contractId itself never changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contractId, supervisorTouched]);
 
   const handleUpdate = async () => {
     if (!task) return;
@@ -305,6 +333,19 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
     return s.length > n ? s.substring(0, n) + '...' : s;
   };
 
+  const assigneeLabel = (assignee: StandaloneTaskAssignee) => {
+    if (assignee.supervisorId) return supervisors.find(s => s.id === assignee.supervisorId)?.fullName ?? '—';
+    if (assignee.workerId) return workers.find(w => w.id === assignee.workerId)?.name ?? '—';
+    return '—';
+  };
+
+  const userLabel = (id?: string | null) => (id ? supervisors.find(s => s.id === id)?.fullName ?? '—' : null);
+
+  const formatCoords = (lat?: number | null, lng?: number | null) =>
+    lat != null && lng != null ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : null;
+
+  const paymentMethodLabel = (method?: string | null) => PAYMENT_METHOD_OPTIONS.find(o => o.id === method)?.label ?? method ?? '—';
+
   useTour(
     "admin-standalone-task-details",
     loading || !task
@@ -366,92 +407,250 @@ export const StandaloneTaskDetailsPage: React.FC<{ taskId?: string; onClose?: ()
           </div>
         </div>
 
-        {/* form - compact (reordered for logical flow) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {/* Client / Contract / Location */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>ربط بعقد (اختياري)</div>
-              <CustomSelect value={contractId ?? ''} onChange={val => setContractId(val as string | null)} options={[{ id: '', label: '-- لا يوجد عقد --' }, ...contracts.map(c => ({ id: c.id, label: `${c.code || '—'} (${c.clientName ?? c.contractUserName ?? '—'})` }))]} placeholder='اختر عقد' width='100%' searchable disabled={viewOnly} />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>الخط / المنطقة</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <CustomSelect value={lineId ?? ''} onChange={val => { setLineId(val as string | null); setZoneId(null); }} options={[{ id: '', label: '-- لا يوجد خط --' }, ...lines.map(l => ({ id: l.id, label: l.name }))]} placeholder='اختر الخط' width='50%' disabled={viewOnly} />
-                <CustomSelect value={zoneId ?? ''} onChange={val => setZoneId(val as string | null)} options={[{ id: '', label: '-- لا توجد منطقة --' }, ...zones.map(z => ({ id: z.id, label: z.name }))]} placeholder='اختر المنطقة' width='50%' disabled={viewOnly || !lineId} />
-              </div>
-            </div>
-          </div>
+        {/* tab bar */}
+        <div style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 8, padding: 4 }}>
+          {DETAIL_TABS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type='button'
+              onClick={() => setActiveTab(key)}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '8px 6px',
+                background: activeTab === key ? 'var(--bg-card)' : 'transparent',
+                border: 'none',
+                borderRadius: 6,
+                color: activeTab === key ? 'var(--color-primary)' : 'var(--text-secondary)',
+                fontWeight: activeTab === key ? 700 : 500,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                boxShadow: activeTab === key ? 'var(--shadow-xs)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Icon size={14} />
+              {label}
+            </button>
+          ))}
+        </div>
 
-          {/* Address */}
-          <div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>العنوان</div>
-            <input className='input' value={address} onChange={e => setAddress(e.target.value)} disabled={viewOnly} />
-          </div>
-
-          {/* Task title and description */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>اسم المهمة</div>
-              <input className='input' value={title} onChange={e => setTitle(e.target.value)} disabled={viewOnly} required />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>وصف المهمة</div>
-              <textarea className='input' rows={2} value={description} onChange={e => setDescription(e.target.value)} style={{ resize: 'none', minHeight: 48 }} disabled={viewOnly} />
-            </div>
-          </div>
-
-          {/* Date / Supervisor / Cost / Status */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>تاريخ ووقت المهمة</div>
-              <input className='input' type='datetime-local' value={taskDate} onChange={e => setTaskDate(e.target.value)} disabled={viewOnly} />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>المشرف</div>
-              <CustomSelect value={supervisorId ?? ''} onChange={val => { setSupervisorTouched(true); setSupervisorId(val as string | null); }} options={[{ id: '', label: '-- لا يوجد مشرف --' }, ...supervisors.map(s => ({ id: s.id, label: s.fullName }))]} placeholder='اختر مشرف' width='100%' disabled={viewOnly} />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>التكلفة</div>
-              <input className='input' type='number' step='0.01' value={cost ?? ''} onChange={e => setCost(e.target.value ? e.target.value : null)} disabled={viewOnly} />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>حالة المهمة</div>
-              <CustomSelect value={status ?? 'pending'} onChange={val => setStatus(val as string)} options={TASK_STATUS_OPTIONS.map(o => ({ id: o.value, label: o.label }))} placeholder='اختر الحالة' width='100%' disabled={viewOnly} />
-            </div>
-          </div>
-
-          {/* Payment status / method */}
-          <div style={{ display: 'grid', gridTemplateColumns: paymentStatus === 'paid' ? '1fr 1fr' : '1fr', gap: 8 }}>
-            <div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>حالة الدفع</div>
-              <CustomSelect value={paymentStatus} onChange={val => setPaymentStatus(val as "unpaid" | "paid")} options={[{ id: 'unpaid', label: 'غير مدفوع' }, { id: 'paid', label: 'مدفوع' }]} placeholder='اختر حالة الدفع' width='100%' disabled={viewOnly} />
-            </div>
-            {paymentStatus === 'paid' && (
+        {/* tab content */}
+        {activeTab === 'basic' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Client / Contract / Location */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
-                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>طريقة الدفع</div>
-                <CustomSelect value={paymentMethod} onChange={val => setPaymentMethod(val as PaymentMethod)} options={PAYMENT_METHOD_OPTIONS} placeholder='اختر طريقة الدفع' width='100%' disabled={viewOnly} />
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>ربط بعقد (اختياري)</div>
+                <CustomSelect value={contractId ?? ''} onChange={val => setContractId(val as string | null)} options={[{ id: '', label: '-- لا يوجد عقد --' }, ...contracts.map(c => ({ id: c.id, label: `${c.code || '—'} (${c.clientName ?? c.contractUserName ?? '—'})` }))]} placeholder='اختر عقد' width='100%' searchable disabled={viewOnly} />
               </div>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>الخط / المنطقة</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <CustomSelect value={lineId ?? ''} onChange={val => { setLineId(val as string | null); setZoneId(null); }} options={[{ id: '', label: '-- لا يوجد خط --' }, ...lines.map(l => ({ id: l.id, label: l.name }))]} placeholder='اختر الخط' width='50%' disabled={viewOnly} />
+                  <CustomSelect value={zoneId ?? ''} onChange={val => setZoneId(val as string | null)} options={[{ id: '', label: '-- لا توجد منطقة --' }, ...zones.map(z => ({ id: z.id, label: z.name }))]} placeholder='اختر المنطقة' width='50%' disabled={viewOnly || !lineId} />
+                </div>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div>
+              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>العنوان</div>
+              <input className='input' value={address} onChange={e => setAddress(e.target.value)} disabled={viewOnly} />
+            </div>
+
+            {/* Task title and description */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>اسم المهمة</div>
+                <input className='input' value={title} onChange={e => setTitle(e.target.value)} disabled={viewOnly} required />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>وصف المهمة</div>
+                <textarea className='input' rows={2} value={description} onChange={e => setDescription(e.target.value)} style={{ resize: 'none', minHeight: 48 }} disabled={viewOnly} />
+              </div>
+            </div>
+
+            {/* Date / Supervisor / Cost / Status */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>تاريخ ووقت المهمة</div>
+                <input className='input' type='datetime-local' value={taskDate} onChange={e => setTaskDate(e.target.value)} disabled={viewOnly} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>المشرف (رئيسي)</div>
+                <CustomSelect value={supervisorId ?? ''} onChange={val => { setSupervisorTouched(true); setSupervisorId(val as string | null); }} options={[{ id: '', label: '-- لا يوجد مشرف --' }, ...supervisors.map(s => ({ id: s.id, label: s.fullName }))]} placeholder='اختر مشرف' width='100%' disabled={viewOnly} />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>التكلفة</div>
+                <input className='input' type='number' step='0.01' value={cost ?? ''} onChange={e => setCost(e.target.value ? e.target.value : null)} disabled={viewOnly} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>حالة المهمة</div>
+                <CustomSelect value={status ?? 'pending'} onChange={val => setStatus(val as string)} options={TASK_STATUS_OPTIONS.map(o => ({ id: o.value, label: o.label }))} placeholder='اختر الحالة' width='100%' disabled={viewOnly} />
+              </div>
+            </div>
+
+            {/* Payment status / method */}
+            <div style={{ display: 'grid', gridTemplateColumns: paymentStatus === 'paid' ? '1fr 1fr' : '1fr', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>حالة الدفع</div>
+                <CustomSelect value={paymentStatus} onChange={val => setPaymentStatus(val as "unpaid" | "paid")} options={[{ id: 'unpaid', label: 'غير مدفوع' }, { id: 'paid', label: 'مدفوع' }]} placeholder='اختر حالة الدفع' width='100%' disabled={viewOnly} />
+              </div>
+              {paymentStatus === 'paid' && (
+                <div>
+                  <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>طريقة الدفع</div>
+                  <CustomSelect value={paymentMethod} onChange={val => setPaymentMethod(val as PaymentMethod)} options={PAYMENT_METHOD_OPTIONS} placeholder='اختر طريقة الدفع' width='100%' disabled={viewOnly} />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'team' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ background: 'var(--bg-subtle)', borderRadius: 8, padding: 10 }}>
+              <strong style={{ display: 'block', marginBottom: 8, fontSize: '0.85rem' }}>الفريق</strong>
+              {assignees.length === 0 ? (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>لا يوجد أعضاء معيّنين</div>
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {assignees.map((assignee) => (
+                    <span
+                      key={assignee.id}
+                      style={{
+                        padding: '3px 10px',
+                        borderRadius: 12,
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        background: assignee.supervisorId ? 'var(--color-primary-light)' : 'var(--neutral-100)',
+                        color: assignee.supervisorId ? 'var(--color-primary)' : 'var(--neutral-700)',
+                      }}
+                    >
+                      {assigneeLabel(assignee)} {assignee.supervisorId ? '· مشرف' : '· عامل'}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: 'var(--bg-subtle)', borderRadius: 8, padding: 10 }}>
+              <strong style={{ display: 'block', marginBottom: 8, fontSize: '0.85rem' }}>
+                التاسكات {taskItems.length > 0 ? `(${taskItems.filter(i => i.status === 'completed').length}/${taskItems.length})` : ''}
+              </strong>
+              {taskItems.length === 0 ? (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>لا توجد تاسكات</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {taskItems.map((item) => (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
+                      {item.status === 'completed' ? (
+                        <CheckCircle2 size={15} color='var(--color-success)' />
+                      ) : (
+                        <Circle size={15} color='var(--text-tertiary)' />
+                      )}
+                      <span style={{ color: item.status === 'completed' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{item.title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'visit' && (
+          <div style={{ background: 'var(--bg-subtle)', borderRadius: 8, padding: 10 }}>
+            {!task.visitStartedAt && !task.visitEndedAt ? (
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', textAlign: 'center', padding: '12px 0' }}>
+                لسه محدش بدأ الزيارة من الموبايل ابلكيشن
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>بدء الزيارة</div>
+                    {task.visitStartedAt ? (
+                      <>
+                        <div>{formatDateTime(task.visitStartedAt)} — {userLabel(task.startedBy) ?? '—'}</div>
+                        {formatCoords(task.visitStartedLat, task.visitStartedLng) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <MapPin size={12} /> {formatCoords(task.visitStartedLat, task.visitStartedLng)}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div>لم تبدأ بعد</div>
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>إنهاء الزيارة</div>
+                    {task.visitEndedAt ? (
+                      <>
+                        <div>{formatDateTime(task.visitEndedAt)} — {userLabel(task.endedBy) ?? '—'}</div>
+                        {formatCoords(task.visitEndedLat, task.visitEndedLng) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <MapPin size={12} /> {formatCoords(task.visitEndedLat, task.visitEndedLng)}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div>لم تنتهِ بعد</div>
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>تأكيد الدفع</div>
+                    {task.paymentConfirmedAt ? (
+                      <>
+                        <div>{formatDateTime(task.paymentConfirmedAt)} — {userLabel(task.paymentConfirmedBy) ?? '—'}</div>
+                        <div>{paymentMethodLabel(task.paymentMethod)}</div>
+                      </>
+                    ) : (
+                      <div>لسه متأكدش</div>
+                    )}
+                  </div>
+                </div>
+                {taskPhotos.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                    {taskPhotos.map((photo) => (
+                      <a key={photo.id} href={photo.photoUrl} target='_blank' rel='noreferrer'>
+                        <img
+                          src={photo.photoUrl}
+                          alt={photo.phase === 'start' ? 'صورة بدء الزيارة' : 'صورة إنهاء الزيارة'}
+                          style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--color-border)' }}
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
+        )}
 
-          {/* Notes and supervisor report */}
-          <div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>ملاحظات إضافية</div>
-            <textarea className='input' rows={1} value={notes} onChange={e => setNotes(e.target.value)} style={{ resize: 'none', minHeight: 36 }} disabled={viewOnly} />
-          </div>
-
-          {supervisorReport ? (
-            <div style={{ background: 'var(--bg-subtle)', padding: 8, borderRadius: 8 }}>
-              <strong style={{ display: 'block', marginBottom: 6 }}>تقرير المشرف</strong>
-              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{truncate(supervisorReport, 150)}</div>
-              {!viewOnly && supervisorReport.length > 150 ? <div style={{ marginTop: 6 }}><button className='button small' onClick={() => setShowFullReport(true)}>عرض كامل</button></div> : null}
+        {activeTab === 'notes' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div>
+              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>ملاحظات إضافية</div>
+              <textarea className='input' rows={3} value={notes} onChange={e => setNotes(e.target.value)} style={{ resize: 'none' }} disabled={viewOnly} />
             </div>
-          ) : null}
-        </div>
+
+            {supervisorReport ? (
+              <div style={{ background: 'var(--bg-subtle)', padding: 8, borderRadius: 8 }}>
+                <strong style={{ display: 'block', marginBottom: 6 }}>تقرير المشرف</strong>
+                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{truncate(supervisorReport, 150)}</div>
+                {!viewOnly && supervisorReport.length > 150 ? <div style={{ marginTop: 6 }}><button className='button small' onClick={() => setShowFullReport(true)}>عرض كامل</button></div> : null}
+              </div>
+            ) : (
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>لا يوجد تقرير من المشرف</div>
+            )}
+          </div>
+        )}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 6 }}>
